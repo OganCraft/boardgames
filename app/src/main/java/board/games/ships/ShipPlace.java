@@ -18,12 +18,12 @@ public class ShipPlace {
                 }
                 break;
             case 2:
-                if (shipBoard[x][y] != 0 || shipBoard[x][y + 1] != 0 || shipBoard[x][y + 2] != 0 || shipBoard[x + 1][y + 1] != 0) {
+                if (shipBoard[x][y] != 0 || shipBoard[x][y + 1] != 0 || shipBoard[x][y + 2] != 0 || shipBoard[x - 1][y + 1] != 0) {
                     return false;
                 }
                 break;
             case 3:
-                if (shipBoard[x][y] != 0 || shipBoard[x][y + 1] != 0 || shipBoard[x][y + 2] != 0 || shipBoard[x + 1][y + 1] != 0 || shipBoard[x][y + 3] != 0 || shipBoard[x + 1][y + 3] != 0 || shipBoard[x][y + 4] != 0) {
+                if (shipBoard[x][y] != 0 || shipBoard[x][y + 1] != 0 || shipBoard[x][y + 2] != 0 || shipBoard[x - 1][y + 1] != 0 || shipBoard[x][y + 3] != 0 || shipBoard[x - 1][y + 3] != 0 || shipBoard[x][y + 4] != 0) {
                     return false;
                 }
                 break;
