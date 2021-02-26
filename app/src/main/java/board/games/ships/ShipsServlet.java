@@ -20,8 +20,9 @@ public class ShipsServlet extends HttpServlet {
             }
         }
 
-        ShipPlace.placeShip(shipBoard);
-        ShipPlace.placeShip(shipBoard);
+        ShipPlace.placeShip(shipBoard, 2);
+        ShipPlace.placeShip(shipBoard, 0);
+        ShipPlace.placeShip(shipBoard, 1);
 //        shipBoard[rng(9, 0)][rng(9, 0)] = 1;
         response.setContentType("application/json");
         response.setStatus(HttpServletResponse.SC_OK);
