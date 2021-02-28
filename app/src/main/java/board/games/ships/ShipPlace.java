@@ -3,26 +3,26 @@ package board.games.ships;
 import static board.games.utils.Rng.rng;
 
 public class ShipPlace {
-    private static boolean placeShipPriv(int[][] shipBoard, int mX, int mY, int type) {
+    private static boolean placeShipPriv(int[][] shipBoard, int mX, int mY, Ships type) {
         int x = rng(9, mX);
         int y = rng(9 - mY, 0);
         switch (type) {
-            case 0:
+            case BOAT:
                 if (shipBoard[x][y] != 0) {
                     return false;
                 }
                 break;
-            case 1:
+            case SUBMARINE:
                 if (shipBoard[x][y] != 0 || shipBoard[x][y + 1] != 0) {
                     return false;
                 }
                 break;
-            case 2:
+            case STEAMBOAT:
                 if (shipBoard[x][y] != 0 || shipBoard[x][y + 1] != 0 || shipBoard[x][y + 2] != 0 || shipBoard[x - 1][y + 1] != 0) {
                     return false;
                 }
                 break;
-            case 3:
+            case CRUISER:
                 if (shipBoard[x][y] != 0 || shipBoard[x][y + 1] != 0 || shipBoard[x][y + 2] != 0 || shipBoard[x - 1][y + 1] != 0 || shipBoard[x][y + 3] != 0 || shipBoard[x - 1][y + 3] != 0 || shipBoard[x][y + 4] != 0) {
                     return false;
                 }
@@ -66,19 +66,19 @@ public class ShipPlace {
             }
             shipBoard[x][y] = 1;
             switch (type) {
-                case 0 : if (help == 0) {
+                case BOAT : if (help == 0) {
                     return true;
                 }
                 break;
-                case 1 : if (help == 1) {
+                case SUBMARINE : if (help == 1) {
                     return true;
                 }
                 break;
-                case 2 : if (help == 3) {
+                case STEAMBOAT : if (help == 3) {
                     return true;
                 }
                 break;
-                case 3 : if (help == 6) {
+                case CRUISER : if (help == 6) {
                     return true;
                 }
                 break;
@@ -89,23 +89,23 @@ public class ShipPlace {
     }
 
 
-    public static void placeShip(int[][] shipBoard, int type) { // 0 = člun, 1 = ponorka, 3 = parník, 4 = letadlová loď
+    private static void placeShip(int[][] shipBoard, Ships type) {
         int mX = 0;
         int mY = 0;
         switch (type) {
-            case 0:
+            case BOAT:
                 mY = 0;
                 mX = 0;
                 break;
-            case 1:
+            case SUBMARINE:
                 mY = 1;
                 mX = 0;
                 break;
-            case 2:
+            case STEAMBOAT:
                 mY = 2;
                 mX = 1;
                 break;
-            case 3:
+            case CRUISER:
                 mY = 4;
                 mX = 1;
                 break;
@@ -113,6 +113,25 @@ public class ShipPlace {
         while (true) {
             if (placeShipPriv(shipBoard, mX, mY, type)) {
                 break;
+            }
+        }
+    }
+    public static void makeBoard(int[][] shipBoard) {
+        ShipPlace.placeShip(shipBoard, Ships.CRUISER);
+        ShipPlace.placeShip(shipBoard, Ships.STEAMBOAT);
+        ShipPlace.placeShip(shipBoard, Ships.STEAMBOAT);
+        ShipPlace.placeShip(shipBoard, Ships.SUBMARINE);
+        ShipPlace.placeShip(shipBoard, Ships.SUBMARINE);
+        ShipPlace.placeShip(shipBoard, Ships.SUBMARINE);
+        ShipPlace.placeShip(shipBoard, Ships.BOAT);
+        ShipPlace.placeShip(shipBoard, Ships.BOAT);
+        ShipPlace.placeShip(shipBoard, Ships.BOAT);
+        ShipPlace.placeShip(shipBoard, Ships.BOAT);
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                if (shipBoard[i][j] == 2) {
+                    shipBoard[i][j] = 0;
+                }
             }
         }
     }
