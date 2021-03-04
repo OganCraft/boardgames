@@ -44,7 +44,7 @@ public class App {
         context.addServlet(UserServlet.class, "/user/*");
 
         // game servlets
-        context.addServlet(ShipsServlet.class, "/ships");
+        context.addServlet(ShipsServlet.class, "/ships/*");
 
         // serve static internal content - not accessible directly
         ServletHolder internalServlet = new ServletHolder("static/internal", DefaultServlet.class);

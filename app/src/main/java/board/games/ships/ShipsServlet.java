@@ -13,6 +13,21 @@ public class ShipsServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 //        int max = Integer.parseInt(request.getParameter("max"));
 //        int min = Integer.parseInt(request.getParameter("min"));
+
+        StringBuilder html = new StringBuilder();
+        html.append("<html>\n" +
+                "<head>\n" +
+                "    <meta charset=\"utf-8\"/>\n" +
+                "    <title>Board Games</title>\n" +
+                " <style><!--\n" +
+                "    .black{\n" +
+                "    background: black;}\n" +
+                "    .blue{\n" +
+                "    background: aqua; color: aqua;}\n" +
+                "    --></style>" +
+                "</head>\n" +
+                "<body>\n");
+
         int[][] shipBoard = new int[10][10];
         for(int i = 0; i < 10; i++) {
             for(int j = 0; j < 10; j++) {
@@ -20,15 +35,28 @@ public class ShipsServlet extends HttpServlet {
             }
         }
         ShipPlace.makeBoard(shipBoard);
-//        shipBoard[rng(9, 0)][rng(9, 0)] = 1;
-        response.setContentType("application/json");
+        response.setContentType("text/html");
         response.setStatus(HttpServletResponse.SC_OK);
-//        response.getWriter().println("{ \"random\": \"" + rng(max , min) + "\"}");
+        html.append("<table border=\"10\" cellspacing=\"0\" cellpadding=\"0\">\n");
         for(int i = 0; i < 10; i++) {
+            html.append("<tr>");
             for(int j = 0; j < 10; j++) {
-                response.getWriter().print(shipBoard[i][j] + " ");
+                if(shipBoard[i][j] == 1) {
+                    html.append("<td width=\"17\" align=\"center\" class=\"black\">");
+                    html.append(shipBoard[i][j]);
+                    html.append("</td>");
+                }else {
+                    html.append("<td width=\"17\" align=\"center\" class=\"blue\">");
+                    html.append(shipBoard[i][j]);
+                    html.append("</td>");
+                }
             }
-            response.getWriter().println();
+            html.append("</tr>");
+            html.append("\n");
         }
+        html.append("</table>");
+        html.append("</body>\n" +
+                "</html>");
+        response.getWriter().println(html);
     }
 }
