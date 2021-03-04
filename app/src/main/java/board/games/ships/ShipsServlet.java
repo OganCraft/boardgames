@@ -29,27 +29,23 @@ public class ShipsServlet extends HttpServlet {
                 "<body>\n");
 
         int[][] shipBoard = new int[10][10];
-        for(int i = 0; i < 10; i++) {
-            for(int j = 0; j < 10; j++) {
-                shipBoard [i][j] = 0;
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                shipBoard[i][j] = 0;
             }
         }
         ShipPlace.makeBoard(shipBoard);
         response.setContentType("text/html");
         response.setStatus(HttpServletResponse.SC_OK);
         html.append("<table border=\"10\" cellspacing=\"0\" cellpadding=\"0\">\n");
-        for(int i = 0; i < 10; i++) {
+        for (int i = 0; i < 10; i++) {
             html.append("<tr>");
-            for(int j = 0; j < 10; j++) {
-                if(shipBoard[i][j] == 1) {
-                    html.append("<td width=\"17\" align=\"center\" class=\"black\">");
-                    html.append(shipBoard[i][j]);
-                    html.append("</td>");
-                }else {
-                    html.append("<td width=\"17\" align=\"center\" class=\"blue\">");
-                    html.append(shipBoard[i][j]);
-                    html.append("</td>");
-                }
+            for (int j = 0; j < 10; j++) {
+                String style = shipBoard[i][j] == 1 ? "black" : "blue";
+
+                html.append("<td width=\"17\" align=\"center\" class=\"").append(style).append("\">");
+                html.append("_");
+                html.append("</td>");
             }
             html.append("</tr>");
             html.append("\n");
