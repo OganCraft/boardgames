@@ -13,8 +13,14 @@ import java.io.IOException;
 public class UserServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // just display the login form
-        getServletContext().getRequestDispatcher("/internal/user/login.html").forward(req, resp);
+        String path = req.getRequestURI();
+        if ("/user/login".equals(path)) {
+            // just display the login form
+            getServletContext().getRequestDispatcher("/internal/user/login.html").forward(req, resp);
+        }else if ("/user/logout".equals(path)) {
+            req.getSession().removeAttribute("user");
+            getServletContext().getRequestDispatcher("/internal/user/user_logged_out.html").forward(req, resp);
+        }
     }
 
     @Override
