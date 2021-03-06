@@ -18,7 +18,7 @@ public class UserServlet extends HttpServlet {
             // just display the login form
             getServletContext().getRequestDispatcher("/internal/user/login.html").forward(req, resp);
         }else if ("/user/logout".equals(path)) {
-            req.getSession().removeAttribute("user");
+            req.getSession().invalidate();
             getServletContext().getRequestDispatcher("/internal/user/user_logged_out.html").forward(req, resp);
         }
     }

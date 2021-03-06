@@ -7,13 +7,9 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
-import static board.games.utils.Rng.rng;
-
 public class ShipsServlet extends HttpServlet {
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-//        int max = Integer.parseInt(request.getParameter("max"));
-//        int min = Integer.parseInt(request.getParameter("min"));
 
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         StringBuilder html = new StringBuilder();
         html.append("<html>\n" +
                 "<head>\n" +
@@ -28,13 +24,19 @@ public class ShipsServlet extends HttpServlet {
                 "</head>\n" +
                 "<body>\n");
 
-        int[][] shipBoard = new int[10][10];
-        for (int i = 0; i < 10; i++) {
-            for (int j = 0; j < 10; j++) {
-                shipBoard[i][j] = 0;
+
+        int[][] shipBoard = (int[][]) request.getSession().getAttribute("shipBoard");
+        if (shipBoard == null) {
+            shipBoard = new int[10][10];
+            for (int i = 0; i < 10; i++) {
+                for (int j = 0; j < 10; j++) {
+                    shipBoard[i][j] = 0;
+                }
             }
+            ShipPlace.makeBoard(shipBoard);
+            request.getSession().setAttribute("shipBoard", shipBoard);
         }
-        ShipPlace.makeBoard(shipBoard);
+
         response.setContentType("text/html");
         response.setStatus(HttpServletResponse.SC_OK);
         html.append("<table border=\"10\" cellspacing=\"0\" cellpadding=\"0\">\n");
@@ -51,8 +53,32 @@ public class ShipsServlet extends HttpServlet {
             html.append("\n");
         }
         html.append("</table>");
+        html.append("<table border=\"10\" cellspacing=\"0\" cellpadding=\"0\">\n");
+        for (int i = 0; i < 10; i++) {
+            html.append("<tr>");
+            for (int j = 0; j < 10; j++) {
+                html.append("<td width=\"17\" align=\"center\" class=\"blue").append("\">");
+                html.append("_");
+                html.append("</td>");
+            }
+            html.append("</tr>");
+            html.append("\n");
+        }
+        html.append("</table>");
+        html.append("<h1>Fire</h1>\n" +
+                "<form action=\"/ships/fire\"  method=\"post\">\n" +
+                "    <label for=\"fire\"><b>Fire: </b></label>\n" +
+                "    <input type=\"text\" name=\"fire\" placeholder=\"Enter where to shoot\" id=\"fire\" required>\n" +
+                "    <button type=\"FIRE\">Fire</button>\n" +
+                "</form>");
         html.append("</body>\n" +
                 "</html>");
         response.getWriter().println(html);
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String fire = req.getParameter("fire");
+        resp.getWriter().println("ccvbnb");
     }
 }
