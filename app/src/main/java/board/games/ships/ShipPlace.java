@@ -4,8 +4,8 @@ import static board.games.utils.Rng.rng;
 
 public class ShipPlace {
     private static boolean placeShipPriv(int[][] shipBoard, int mX, int mY, Ships type) {
-        int x = rng(9, mX);
-        int y = rng(9 - mY, 0);
+        int x = rng(mX, 9);
+        int y = rng(0, 9 - mY);
         switch (type) {
             case BOAT:
                 if (shipBoard[x][y] != 0) {
