@@ -41,6 +41,7 @@ public class ShipsServlet extends HttpServlet {
                 enemyBoard[fireLoc[0]][fireLoc[1]] = 3;
                 if (sunkenShip(enemyBoard, fireLoc)) {
                     messages.add("Captain, you are the best. Their ship is sinking.");
+                    waterAround(enemyBoard, fireLoc);
                     if (gameOver(enemyBoard)) {
                         gameOver = true;
                         messages.add("Congrats, you won!!!");
@@ -54,6 +55,47 @@ public class ShipsServlet extends HttpServlet {
             }
         }
         htmlCode(shipBoard, enemyBoard, resp, messages, gameOver);
+    }
+
+    private void waterAround(int[][] shipBoard, int[] fireLoc) {
+        Set<String> checked = new HashSet<>();
+        Queue<int[]> toCheck = new LinkedList<>();
+        toCheck.add(fireLoc);
+        int[][] outlook = new int[][]{
+                new int[]{1, 1},
+                new int[]{1, 0},
+                new int[]{1, -1},
+                new int[]{0, 1},
+                new int[]{0, -1},
+                new int[]{-1, 1},
+                new int[]{-1, 0},
+                new int[]{-1, -1}
+        };
+        while (!toCheck.isEmpty()) {
+            int[] toTest = toCheck.remove();
+
+            int x = toTest[0];
+            int y = toTest[1];
+
+            for (int[] out : outlook) {
+                int _x = x + out[0];
+                int _y = y + out[1];
+                if (_x >= 0 && _x <= 9 && _y >= 0 && _y <= 9) {
+                    if (shipBoard[_x][_y] == 0) {
+                        shipBoard[_x][_y] = 2;
+                    }
+                    if (shipBoard[_x][_y] == 3) {
+                        int[] e = {_x, _y};
+                        if (!checked.contains(_x + ":" + _y)) {
+                            toCheck.add(e);
+                        }
+                    }
+
+                }
+            }
+            checked.add(x + ":" + y);
+        }
+
     }
 
     protected int[] fire(String fire, List<String> messages) {
@@ -144,6 +186,22 @@ public class ShipsServlet extends HttpServlet {
 
     }
 
+    private void enemyShootImpossible(int[][] shipBoard, List<String> messages) {
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                if (shipBoard[i][j] == 1) {
+                    shipBoard[i][j] = 3;
+                    if (gameOver(shipBoard)) {
+                        messages.add("Did you think you could win this?");
+                    } else {
+                        messages.add("You really thought this was gonna be easy?");
+                    }
+                    return;
+                }
+            }
+        }
+    }
+
     private boolean gameOver(int[][] shipBoard) {
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
@@ -167,14 +225,33 @@ public class ShipsServlet extends HttpServlet {
                 "    .default{background: lightgrey; color: lightgrey;}\n" +
                 "    .hitship{background: red; color: red;}\n" +
                 "    .hitwater{background: blue; color: blue;}\n" +
+                "    .number{background: white; color: black;}\n" +
                 "    --></style>" +
                 "</head>\n" +
                 "<body>\n");
         resp.setContentType("text/html");
         resp.setStatus(HttpServletResponse.SC_OK);
         html.append("<table border=\"10\" cellspacing=\"0\" cellpadding=\"0\">\n");
+        int k = 0;
+        int a = 'a' - 1;
+        int b = 0;
+        for (int l = 0; l < 11; l++) {
+            html.append("<td width=\"17\" align=\"center\" class=\"number\">");
+            if (b == 0) {
+                html.append("");
+            } else {
+                html.append(b);
+            }
+            html.append("</td>");
+            b++;
+        }
+        html.append("<tr>");
         for (int i = 0; i < 10; i++) {
+            a++;
             html.append("<tr>");
+            html.append("<td width=\"17\" align=\"center\" class=\"number\">");
+            html.append((char) a);
+            html.append("</td>");
             for (int j = 0; j < 10; j++) {
                 String style;
                 switch (shipBoard[i][j]) {
@@ -195,7 +272,6 @@ public class ShipsServlet extends HttpServlet {
                 }
 
                 html.append("<td width=\"17\" align=\"center\" class=\"").append(style).append("\">");
-                html.append("_");
                 html.append("</td>");
             }
             html.append("</tr>");
@@ -203,8 +279,24 @@ public class ShipsServlet extends HttpServlet {
         }
         html.append("</table>");
         html.append("<table border=\"10\" cellspacing=\"0\" cellpadding=\"0\">\n");
+        a = 'a' - 1;
+        b = 0;
+        for (int l = 0; l < 11; l++) {
+            html.append("<td width=\"17\" align=\"center\" class=\"number\">");
+            if (b == 0) {
+                html.append("");
+            } else {
+                html.append(b);
+            }
+            html.append("</td>");
+            b++;
+        }
         for (int i = 0; i < 10; i++) {
+            a++;
             html.append("<tr>");
+            html.append("<tr>");
+            html.append("<td width=\"17\" align=\"center\" class=\"number\">");
+            html.append((char) a);
             for (int j = 0; j < 10; j++) {
                 String style;
                 switch (enemyBoard[i][j]) {
@@ -219,7 +311,6 @@ public class ShipsServlet extends HttpServlet {
                 }
 
                 html.append("<td width=\"17\" align=\"center\" class=\"").append(style).append("\">");
-                html.append("_");
                 html.append("</td>");
             }
             html.append("</tr>");
