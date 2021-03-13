@@ -34,7 +34,8 @@ public class UserServlet extends HttpServlet {
             getServletContext().getRequestDispatcher("/internal/user/user_not_found.html").forward(req, resp);
         else {
             req.getSession().setAttribute("user", user);
-            getServletContext().getRequestDispatcher("/internal/user/user_logged_in.html").forward(req, resp);
+//            getServletContext().getRequestDispatcher("/internal/user/user_logged_in.html").forward(req, resp);
+            resp.sendRedirect("/room");
         }
     }
 }

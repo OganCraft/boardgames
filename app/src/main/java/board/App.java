@@ -3,9 +3,13 @@ package board;
 import board.games.hello.HelloServlet;
 import board.filter.AuthenticationFilter;
 import board.games.ships.ShipsServlet;
+import board.room.RoomManager;
+import board.room.RoomManagerImpl;
+import board.room.RoomServlet;
 import board.user.MemoryUserRepository;
 import board.user.UserServlet;
 import jakarta.servlet.DispatcherType;
+import jakarta.servlet.Servlet;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
@@ -42,6 +46,7 @@ public class App {
         // system servlets
         context.addServlet(HelloServlet.class, "/hello");
         context.addServlet(UserServlet.class, "/user/*");
+        context.addServlet(RoomServlet.class, "/room/*");
 
         // game servlets
         context.addServlet(ShipsServlet.class, "/ships/*");
@@ -59,6 +64,7 @@ public class App {
 
         // set objects shared across all servlets
         context.setAttribute("userDb", new MemoryUserRepository());
+        context.setAttribute(RoomManager.roomManagerAttribute, new RoomManagerImpl());
 
         server.start();
         server.join();

@@ -1,5 +1,7 @@
 package board.games.ships;
 
+import board.room.Room;
+import board.user.User;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,27 +12,65 @@ import java.util.*;
 
 import static board.games.utils.Rng.rng;
 
+/**
+ * todo: communication between users
+ */
 public class ShipsServlet extends HttpServlet {
 
-    protected void doGet(HttpServletRequest request, HttpServletResponse resp) throws ServletException, IOException {
-        int[][] shipBoard = (int[][]) request.getSession().getAttribute("shipBoard");
-        int[][] enemyBoard = (int[][]) request.getSession().getAttribute("enemyBoard");
-        if (shipBoard == null) {
-            shipBoard = boardGenerate();
-            enemyBoard = boardGenerate();
-            request.getSession().setAttribute("shipBoard", shipBoard);
-            request.getSession().setAttribute("enemyBoard", enemyBoard);
+    private static final class Boards {
+        int[][] shipBoard, enemyBoard;
+
+        public Boards(int[][] shipBoard, int[][] enemyBoard) {
+            this.shipBoard = shipBoard;
+            this.enemyBoard = enemyBoard;
         }
-        htmlCode(shipBoard, enemyBoard, resp, Collections.emptyList(), false);
+    }
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse resp) throws ServletException, IOException {
+        Room room = (Room) request.getSession().getAttribute("room");
+        User user = (User) request.getSession().getAttribute("user");
+
+        String path = request.getRequestURI();
+        if ("/ships/start".equals(path)) {
+            initGame(room);
+        }
+
+        Boards boards = getBoards(room, user);
+        htmlCode(boards, resp, Collections.emptyList(), false);
+    }
+
+    private void initGame(Room room) {
+        for (User player : room.players()) {
+            room.parameters().put(player.getName(), boardGenerate());
+        }
+    }
+
+    private Boards getBoards(Room room, User user) {
+        // create copy of players, so we can freely modify the collection
+        List<String> players = new ArrayList<>(room.parameters().keySet());
+
+        int[][] shipBoard = (int[][]) room.parameters().get(user.getName());
+        players.remove(user.getName());
+        // the name which left is the enemy
+        int[][] enemyBoard = (int[][]) room.parameters().get(players.get(0));
+
+        return new Boards(shipBoard, enemyBoard);
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        Room room = (Room) req.getSession().getAttribute("room");
+        User user = (User) req.getSession().getAttribute("user");
+
+        Boards boards = getBoards(room, user);
+
         List<String> messages = new ArrayList<>();
         String fire = req.getParameter("fire");
         int[] fireLoc = fire(fire, messages);
-        int[][] shipBoard = (int[][]) req.getSession().getAttribute("shipBoard");
-        int[][] enemyBoard = (int[][]) req.getSession().getAttribute("enemyBoard");
+
+        int[][] shipBoard = boards.shipBoard;
+        int[][] enemyBoard = boards.enemyBoard;
+
         boolean gameOver = false;
         if (fireLoc != null) {
             if (enemyBoard[fireLoc[0]][fireLoc[1]] == 0) {
@@ -54,7 +94,7 @@ public class ShipsServlet extends HttpServlet {
                 messages.add("What are you doing? You already shot that place");
             }
         }
-        htmlCode(shipBoard, enemyBoard, resp, messages, gameOver);
+        htmlCode(boards, resp, messages, gameOver);
     }
 
     private void waterAround(int[][] shipBoard, int[] fireLoc) {
@@ -213,7 +253,7 @@ public class ShipsServlet extends HttpServlet {
         return true;
     }
 
-    private void htmlCode(int[][] shipBoard, int[][] enemyBoard, HttpServletResponse resp, List<String> messages, boolean gameOver) throws IOException {
+    private void htmlCode(Boards boards, HttpServletResponse resp, List<String> messages, boolean gameOver) throws IOException {
         StringBuilder html = new StringBuilder();
         html.append("<html>\n" +
                 "<head>\n" +
@@ -254,7 +294,7 @@ public class ShipsServlet extends HttpServlet {
             html.append("</td>");
             for (int j = 0; j < 10; j++) {
                 String style;
-                switch (shipBoard[i][j]) {
+                switch (boards.shipBoard[i][j]) {
                     case 0:
                         style = "water";
                         break;
@@ -299,7 +339,7 @@ public class ShipsServlet extends HttpServlet {
             html.append((char) a);
             for (int j = 0; j < 10; j++) {
                 String style;
-                switch (enemyBoard[i][j]) {
+                switch (boards.enemyBoard[i][j]) {
                     case 2:
                         style = "hitwater";
                         break;
