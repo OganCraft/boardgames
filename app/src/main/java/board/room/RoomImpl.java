@@ -12,12 +12,14 @@ public class RoomImpl implements Room {
     private boolean started;
     private boolean closed;
     private Map<String, Object> parameters;
+    private boolean gameOver;
 
     public RoomImpl(Games game, User owner) {
         this.game = game;
         this.owner = owner;
         this.started = false;
         this.closed = false;
+        this.gameOver = false;
         this.players = new LinkedHashSet<>();
         this.players.add(owner);
         this.parameters = new HashMap<>();
@@ -61,6 +63,16 @@ public class RoomImpl implements Room {
     @Override
     public boolean isStarted() {
         return started;
+    }
+
+    @Override
+    public boolean isGameOver() {
+        return gameOver;
+    }
+
+    @Override
+    public void gameOver() {
+        gameOver = true;
     }
 
     @Override

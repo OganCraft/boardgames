@@ -62,6 +62,18 @@ public interface Room {
     boolean isStarted();
 
     /**
+     * The game has ended.
+     *
+     * @return <tt>true</tt> if the game has ended
+     */
+    boolean isGameOver();
+
+    /**
+     * Set game over.
+     */
+    void gameOver();
+
+    /**
      * Close the room.
      * This operation should be available only for the room owner.
      */

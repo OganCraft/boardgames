@@ -43,7 +43,7 @@ public class RoomServlet extends HttpServlet {
                 "</head>\n" +
                 "<body>\n" +
                 "<table border=\"1\">\n" +
-                "    <tr><th>Games</th><th>Rooms</td></tr>\n");
+                "    <tr><th>Games</th><th>Available Rooms</th><th>Game in progress</th></tr>\n");
 
         // games
         html.append("<tr><td>");
@@ -54,11 +54,17 @@ public class RoomServlet extends HttpServlet {
         html.append("\n</td><td>\n");
 
         for (Room room : roomManager.availableRooms()) {
-            // todo <a href="/room/join?room=xyz>game name</a>
             html.append("<a href=/room/join?room=").append(room.id()).append(">");
             html.append(room.game().getName()).append("</a> (created by ")
                     .append(room.owner().getName()).append(")<br>");
         }
+        html.append("</td><td>");
+        for (Room room : roomManager.activeRooms()) {
+            html.append("<a href=/room/join?room=").append(room.id()).append(">");
+            html.append(room.game().getName()).append("</a> (created by ")
+                    .append(room.owner().getName()).append(")<br>");
+        }
+
         html.append("</td></tr>");
 
         html.append("</table>\n" +
@@ -140,7 +146,7 @@ public class RoomServlet extends HttpServlet {
                 "<ul>\n" +
                 "    <li>min: ").append(room.game().minPlayers()).append("</li>\n" +
                 "    <li>max: ").append(room.game().maxPlayers()).append("</li>\n" +
-                "    <li>actual: ").append(room.players().size()).append("</li>\n" +
+                "    <li>current: ").append(room.players().size()).append("</li>\n" +
                 "</ul>\n" +
                 "Players:\n" +
                 "<ul>\n");

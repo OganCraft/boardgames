@@ -12,17 +12,18 @@ import java.util.*;
 
 import static board.games.utils.Rng.rng;
 
-/**
- * todo: communication between users
- */
 public class ShipsServlet extends HttpServlet {
 
     private static final class Boards {
         int[][] shipBoard, enemyBoard;
+        String me, enemy;
 
-        public Boards(int[][] shipBoard, int[][] enemyBoard) {
+        public Boards(int[][] shipBoard, int[][] enemyBoard, String me, String enemy) {
             this.shipBoard = shipBoard;
             this.enemyBoard = enemyBoard;
+
+            this.me = me;
+            this.enemy = enemy;
         }
     }
 
@@ -33,28 +34,34 @@ public class ShipsServlet extends HttpServlet {
         String path = request.getRequestURI();
         if ("/ships/start".equals(path)) {
             initGame(room);
+            room.parameters().put("onTurn", user.getName());
         }
 
         Boards boards = getBoards(room, user);
-        htmlCode(boards, resp, Collections.emptyList(), false);
+        boolean myTurn = boards.me.equals(room.parameters().get("onTurn"));
+        htmlCode(boards, myTurn, resp, Collections.emptyList(), room);
     }
 
     private void initGame(Room room) {
+        List<String> playerNames = new ArrayList<>();
         for (User player : room.players()) {
             room.parameters().put(player.getName(), boardGenerate());
+            playerNames.add(player.getName());
         }
+        room.parameters().put("playerNames", playerNames);
     }
 
     private Boards getBoards(Room room, User user) {
         // create copy of players, so we can freely modify the collection
-        List<String> players = new ArrayList<>(room.parameters().keySet());
+        List<String> players = new ArrayList((List<String>) room.parameters().get("playerNames"));
 
         int[][] shipBoard = (int[][]) room.parameters().get(user.getName());
         players.remove(user.getName());
         // the name which left is the enemy
-        int[][] enemyBoard = (int[][]) room.parameters().get(players.get(0));
+        String enemy = players.get(0);
+        int[][] enemyBoard = (int[][]) room.parameters().get(enemy);
 
-        return new Boards(shipBoard, enemyBoard);
+        return new Boards(shipBoard, enemyBoard, user.getName(), enemy);
     }
 
     @Override
@@ -71,30 +78,30 @@ public class ShipsServlet extends HttpServlet {
         int[][] shipBoard = boards.shipBoard;
         int[][] enemyBoard = boards.enemyBoard;
 
-        boolean gameOver = false;
         if (fireLoc != null) {
             if (enemyBoard[fireLoc[0]][fireLoc[1]] == 0) {
                 enemyBoard[fireLoc[0]][fireLoc[1]] = 2;
                 messages.add("Aw, you missed.");
-                enemyShoot(shipBoard, messages);
+//                enemyShoot(shipBoard, messages);
             } else if (enemyBoard[fireLoc[0]][fireLoc[1]] == 1) {
                 enemyBoard[fireLoc[0]][fireLoc[1]] = 3;
                 if (sunkenShip(enemyBoard, fireLoc)) {
                     messages.add("Captain, you are the best. Their ship is sinking.");
                     waterAround(enemyBoard, fireLoc);
                     if (gameOver(enemyBoard)) {
-                        gameOver = true;
+                        room.gameOver();
                         messages.add("Congrats, you won!!!");
                     }
                 } else {
                     messages.add("Great job, you hit your target. Give them what they deserve.");
                 }
-                enemyShoot(shipBoard, messages);
+//                enemyShoot(shipBoard, messages);
             } else {
                 messages.add("What are you doing? You already shot that place");
             }
         }
-        htmlCode(boards, resp, messages, gameOver);
+        htmlCode(boards, false, resp, messages, room);
+        room.parameters().put("onTurn", boards.enemy);
     }
 
     private void waterAround(int[][] shipBoard, int[] fireLoc) {
@@ -253,7 +260,7 @@ public class ShipsServlet extends HttpServlet {
         return true;
     }
 
-    private void htmlCode(Boards boards, HttpServletResponse resp, List<String> messages, boolean gameOver) throws IOException {
+    private void htmlCode(Boards boards, boolean myTurn, HttpServletResponse resp, List<String> messages, Room room) throws IOException {
         StringBuilder html = new StringBuilder();
         html.append("<html>\n" +
                 "<head>\n" +
@@ -360,12 +367,20 @@ public class ShipsServlet extends HttpServlet {
         for (String s : messages) {
             html.append("<h3>").append(s).append("</h3>\n ");
         }
-        if (!gameOver) {
+
+        if (room.isGameOver()) {
+            html.append("<h2>Game over</h2>\n");
+            if (boards.me.equals(room.owner().getName())) {
+                html.append("<a href=\"/room/end\">end the room</a>");
+            }
+        } else if (myTurn) {
             html.append("<form action=\"/ships/fire\"  method=\"post\">\n" +
                     "    <label for=\"fire\"><b>Put in coords: </b></label>\n" +
                     "    <input type=\"text\" name=\"fire\" placeholder=\"Enter where to shoot\" id=\"fire\" required>\n" +
                     "    <button type=\"FIRE\">Fire</button>\n" +
                     "</form>");
+        } else {
+            html.append("<h3>Enemy's turn, click <a href=\"/ships\">reload</a></h3>");
         }
         html.append("</body>\n" +
                 "</html>");
