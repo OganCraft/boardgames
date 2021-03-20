@@ -1,6 +1,8 @@
+<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" media="all" href="/css/style.css"/>
     <title>User login</title>
 </head>
 <body>
@@ -10,5 +12,6 @@
     <input type="text" name="loginName" placeholder="Enter Username" id="loginName" required>
     <button type="submit">Login</button>
 </form>
+<p class="error" th:text="${error}">Error message</p>
 </body>
 </html>

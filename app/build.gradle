@@ -20,8 +20,9 @@ repositories {
 }
 
 dependencies {
-    implementation group: 'org.eclipse.jetty', name: 'jetty-server', version: '11.0.1'
-    implementation group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '11.0.1'
+    implementation group: 'org.eclipse.jetty', name: 'jetty-server', version: '10.0.1'
+    implementation group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '10.0.1'
+    implementation group: 'org.thymeleaf', name: 'thymeleaf', version: '3.0.12.RELEASE'
 
     // Use the latest Groovy version for Spock testing
     testImplementation 'org.codehaus.groovy:groovy-all:2.5.13'

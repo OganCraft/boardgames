@@ -1,21 +1,22 @@
 package board;
 
-import board.games.hello.HelloServlet;
 import board.filter.AuthenticationFilter;
+import board.games.hello.HelloServlet;
 import board.games.ships.ShipsServlet;
 import board.room.RoomManager;
 import board.room.RoomManagerImpl;
 import board.room.RoomServlet;
+import board.template.ThymeleafServlet;
 import board.user.MemoryUserRepository;
 import board.user.UserServlet;
-import jakarta.servlet.DispatcherType;
-import jakarta.servlet.Servlet;
+import javax.servlet.DispatcherType;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SessionIdManager;
 import org.eclipse.jetty.server.session.DefaultSessionIdManager;
 import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.ErrorPageErrorHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.Resource;
@@ -39,9 +40,9 @@ public class App {
         context.setBaseResource(Resource.newClassPathResource("static"));
         context.setContextPath("/");
         context.setDefaultResponseCharacterEncoding("utf-8");
-        server.setHandler(context);
 
         context.addFilter(AuthenticationFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
+//        context.addFilter(ThymeleafFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
 
         // system servlets
         context.addServlet(HelloServlet.class, "/hello");
@@ -51,20 +52,29 @@ public class App {
         // game servlets
         context.addServlet(ShipsServlet.class, "/ships/*");
 
-        // serve static internal content - not accessible directly
-        ServletHolder internalServlet = new ServletHolder("static/internal", DefaultServlet.class);
-        context.addServlet(internalServlet, "/internal/*");
+        // html template servlet
+//        context.addServlet(ThymeleafServlet.class, "/thymeleaf");
+//        context.addServlet(ThymeleafServlet.class, "*.th/*");
+        context.addServlet(ThymeleafServlet.class, "/th/*");
 
         // the default servlet for root content (always needed, to satisfy servlet spec)
         // must come as the last one
         ServletHolder defaultServlet = new ServletHolder("default", DefaultServlet.class);
-        defaultServlet.setInitParameter("relativeResourceBase","/web");
-        defaultServlet.setInitParameter("dirAllowed","true");
-        context.addServlet(defaultServlet,"/");
+        defaultServlet.setInitParameter("relativeResourceBase", "/web");
+        defaultServlet.setInitParameter("dirAllowed", "true");
+        context.addServlet(defaultServlet, "/");
 
         // set objects shared across all servlets
         context.setAttribute("userDb", new MemoryUserRepository());
         context.setAttribute(RoomManager.roomManagerAttribute, new RoomManagerImpl());
+
+        ErrorPageErrorHandler error = new ErrorPageErrorHandler();
+        error.addErrorPage(404, "/error/404.tf");
+
+        context.setErrorHandler(error);
+        ThymeleafServlet.config(context.getServletContext());
+
+        server.setHandler(context);
 
         server.start();
         server.join();

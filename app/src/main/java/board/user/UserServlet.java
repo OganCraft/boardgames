@@ -1,9 +1,9 @@
 package board.user;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
@@ -16,7 +16,7 @@ public class UserServlet extends HttpServlet {
         String path = req.getRequestURI();
         if ("/user/login".equals(path)) {
             // just display the login form
-            getServletContext().getRequestDispatcher("/internal/user/login.html").forward(req, resp);
+            getServletContext().getRequestDispatcher("/th/user/login.th").forward(req, resp);
         }else if ("/user/logout".equals(path)) {
             req.getSession().invalidate();
             getServletContext().getRequestDispatcher("/internal/user/user_logged_out.html").forward(req, resp);
@@ -30,12 +30,13 @@ public class UserServlet extends HttpServlet {
         String loginName = req.getParameter("loginName");
         User user = userDB.findUserByLoginName(loginName);
 
-        if (user == null)
-            getServletContext().getRequestDispatcher("/internal/user/user_not_found.html").forward(req, resp);
-        else {
+        if (user == null) {
+            req.setAttribute("error", "User not found: " + loginName);
+            getServletContext().getRequestDispatcher("/th/user/login.th").forward(req, resp);
+        } else {
             req.getSession().setAttribute("user", user);
-//            getServletContext().getRequestDispatcher("/internal/user/user_logged_in.html").forward(req, resp);
-            resp.sendRedirect("/room");
+            getServletContext().getRequestDispatcher("/internal/user/user_logged_in.html").forward(req, resp);
+//            resp.sendRedirect("/room");
         }
     }
 }
