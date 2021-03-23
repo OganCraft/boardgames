@@ -17,6 +17,15 @@ public enum Games {
     }
 
     /**
+     * Enum name. Just to be accessible via getter.
+     *
+     * @return Enum.name()
+     */
+    public String getId() {
+        return name();
+    }
+
+    /**
      * Name of a game.
      *
      * @return the name

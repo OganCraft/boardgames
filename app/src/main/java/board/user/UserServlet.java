@@ -17,7 +17,7 @@ public class UserServlet extends HttpServlet {
         if ("/user/login".equals(path)) {
             // just display the login form
             getServletContext().getRequestDispatcher("/th/user/login.th").forward(req, resp);
-        }else if ("/user/logout".equals(path)) {
+        } else if ("/user/logout".equals(path)) {
             req.getSession().invalidate();
             getServletContext().getRequestDispatcher("/internal/user/user_logged_out.html").forward(req, resp);
         }
@@ -35,8 +35,7 @@ public class UserServlet extends HttpServlet {
             getServletContext().getRequestDispatcher("/th/user/login.th").forward(req, resp);
         } else {
             req.getSession().setAttribute("user", user);
-            getServletContext().getRequestDispatcher("/internal/user/user_logged_in.html").forward(req, resp);
-//            resp.sendRedirect("/room");
+            resp.sendRedirect("/room");
         }
     }
 }

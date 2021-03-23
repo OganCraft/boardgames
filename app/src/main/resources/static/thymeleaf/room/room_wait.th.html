@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <link rel="stylesheet" type="text/css" media="all" href="/css/style.css"/>
+    <title>Waiting room</title>
+</head>
+<body>
+<div th:text="'Room owner: ' + ${room.owner.name}">Room owner: John</div>
+<div>
+    Room capacity:
+    <ul>
+        <li th:text="'min: ' + ${room.game.minPlayers}">min: 1</li>
+        <li th:text="'max: ' + ${room.game.maxPlayers}">max: 10</li>
+        <li th:text="'current: ' + ${#sets.size(room.players)}">current: 5</li>
+    </ul>
+</div>
+<div>
+    Players:
+    <ul>
+        <li th:each="player: ${room.players}" th:text="${player.name}">John</li>
+    </ul>
+</div>
+<div>
+    Actions:
+    <ul>
+        <li><a href="/room/reload" th:href="@{/room/wait}">reload</a></li>
+        <li th:if="${session.user == room.owner and room.game.minPlayers <= #sets.size(room.players)}"><a href="/room/start" th:href="@{/room/start}">start</a></li>
+        <li th:if="${session.user == room.owner}"><a href="/room/end" th:href="@{/room/end}">end</a></li>
+        <li th:unless="${session.user == room.owner}"><a href="/room/leave" th:href="@{/room/leave}">leave</a></li>
+    </ul>
+</div>
+</body>
+</html>
