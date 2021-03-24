@@ -1,0 +1,40 @@
+<html xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8"/>
+    <title>Board Games</title>
+    <style><!--
+    .ship{background: black;}
+    .water{background: aqua; color: aqua;}
+    .default{background: lightgrey; color: lightgrey;}
+    .hitship{background: red; color: red;}
+    .hitwater{background: blue; color: blue;}
+    .number{background: white; color: black;}
+    --></style></head>
+<body>
+<table border="10" cellspacing="0" cellpadding="0">
+    <tr><td></td><td th:each="column: ${columns}" th:text="${column}" width="17" align="center" class="number"></td></tr>
+    <tr th:each="row: ${rows}">
+        <td th:text="${row.letter}" width="17" align="center" class="number"></td>
+        <td th:each="column: ${row.columns}" th:class="(${column} > 0)? ((${column} > 1)? ((${column} > 2)? 'hitship' : 'hitwater') : 'ship') : 'water'"></td>
+    </tr>
+</table>
+
+
+
+
+<table border="10" cellspacing="0" cellpadding="0">
+    <tr><td></td><td th:each="column: ${columns}" th:text="${column}" width="17" align="center" class="number"></td></tr>
+    <tr th:each="row: ${enemyRows}">
+        <td th:text="${row.letter}" width="17" align="center" class="number"></td>
+        <td th:each="column: ${row.columns}" th:class="(${column} > 0)? ((${column} > 1)? ((${column} > 2)? 'hitship' : 'hitwater') : 'default') : 'default'"></td>
+    </tr>
+</table>
+
+
+
+<form action="/ships/fire"  method="post">
+    <label for="fire"><b>Put in coords: </b></label>
+    <input type="text" name="fire" placeholder="Enter where to shoot" id="fire" required>
+    <button type="FIRE">Fire</button>
+</form></body>
+</html>

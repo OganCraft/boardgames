@@ -27,6 +27,24 @@ public class ShipsServlet extends HttpServlet {
         }
     }
 
+    public static class OneRow {
+        private String letter;
+        private List<Integer> columns;
+
+        public OneRow(String letter, List<Integer> values) {
+            this.letter = letter;
+            this.columns = values;
+        }
+
+        public String getLetter() {
+            return letter;
+        }
+
+        public List<Integer> getColumns() {
+            return columns;
+        }
+    }
+
     protected void doGet(HttpServletRequest request, HttpServletResponse resp) throws ServletException, IOException {
         Room room = (Room) request.getSession().getAttribute("room");
         User user = (User) request.getSession().getAttribute("user");
@@ -39,7 +57,7 @@ public class ShipsServlet extends HttpServlet {
 
         Boards boards = getBoards(room, user);
         boolean myTurn = boards.me.equals(room.parameters().get("onTurn"));
-        htmlCode(boards, myTurn, resp, Collections.emptyList(), room);
+        htmlCode(boards, myTurn, resp, request, Collections.emptyList(), room);
     }
 
     private void initGame(Room room) {
@@ -100,7 +118,7 @@ public class ShipsServlet extends HttpServlet {
                 messages.add("What are you doing? You already shot that place");
             }
         }
-        htmlCode(boards, false, resp, messages, room);
+        htmlCode(boards, false, resp, req, messages, room);
         room.parameters().put("onTurn", boards.enemy);
     }
 
@@ -260,7 +278,33 @@ public class ShipsServlet extends HttpServlet {
         return true;
     }
 
-    private void htmlCode(Boards boards, boolean myTurn, HttpServletResponse resp, List<String> messages, Room room) throws IOException {
+    private void htmlCode(Boards boards, boolean myTurn, HttpServletResponse resp, HttpServletRequest req, List<String> messages, Room room) throws IOException, ServletException {
+        List<String> x = new ArrayList<>();
+        List<OneRow> y = new ArrayList<>();
+        List<OneRow> z = new ArrayList<>();
+        // create rows
+        for(int i = 0; i < 10; i++) {
+            // one column for the first row
+            x.add(String.valueOf(i+1));
+            // columns of the other rows
+            String letter = String.valueOf((char)('a' + i));
+            List<Integer> columns = new ArrayList<>();
+            List<Integer> enemyColumns = new ArrayList<>();
+            for (int j = 0; j < 10; j++) {
+                columns.add(boards.shipBoard[i][j]);
+                enemyColumns.add(boards.enemyBoard[i][j]);
+            }
+
+            y.add(new OneRow(letter, columns));
+            z.add(new OneRow(letter, enemyColumns));
+        }
+        req.setAttribute("columns", x);
+        req.setAttribute("rows", y);
+        req.setAttribute("enemyRows", z);
+        getServletContext().getRequestDispatcher("/th/ships/ships.th").forward(req, resp);
+    }
+
+    private void htmlCodex(Boards boards, boolean myTurn, HttpServletResponse resp, List<String> messages, Room room) throws IOException {
         StringBuilder html = new StringBuilder();
         html.append("<html>\n" +
                 "<head>\n" +
