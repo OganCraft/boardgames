@@ -53,6 +53,8 @@ public class ShipsServlet extends HttpServlet {
         if ("/ships/start".equals(path)) {
             initGame(room);
             room.parameters().put("onTurn", user.getName());
+            resp.sendRedirect("/ships");
+            return;
         }
 
         Boards boards = getBoards(room, user);
@@ -301,6 +303,7 @@ public class ShipsServlet extends HttpServlet {
         req.setAttribute("columns", x);
         req.setAttribute("rows", y);
         req.setAttribute("enemyRows", z);
+        req.setAttribute("myTurn", myTurn);
         getServletContext().getRequestDispatcher("/th/ships/ships.th").forward(req, resp);
     }
 }

@@ -12,13 +12,28 @@
     .number{background: white; color: black;}
     }
     --></style>
-    <script>
+    <script th:inline="javascript">
+          var myTurn = [[${myTurn}]];
+    </script>
+
+    <script th:if="${myTurn}">
         function screenWidth() {
             alert("Total Width: " + screen.width);
         }
-    </script>
+        function coords(x, y) {
+            document.getElementById("fire").value = x + y;
+            document.getElementById("form").submit();
+        }
+   </script>
+    <script th:if="${!myTurn}">
+        var interval = setInterval(reload, 500);
+        function reload() {
+            document.getElementById("reload").submit();
+        }
+     </script>
+
 </head>
-<body onload="screenWidth()">
+<body>
 <table border="10" cellspacing="0" cellpadding="0">
     <tr><td></td><td th:each="column: ${columns}" th:text="${column}" width="17" align="center" class="number"></td></tr>
     <tr th:each="row: ${rows}">
@@ -34,15 +49,22 @@
     <tr><td class="column"></td><td th:each="column: ${columns}" th:text="${column}" width="17" align="center" class="number column">a</td></tr>
     <tr th:each="row: ${enemyRows}">
         <td th:text="${row.letter}" width="17" align="center" class="number">1</td>
-        <td th:each="column: ${row.columns}" th:class="(${column} > 0)? ((${column} > 1)? ((${column} > 2)? 'hitship' : 'hitwater') : 'default') : 'default'"></td>
+        <td th:each="column, s: ${row.columns}" th:class="(${column} > 0)? ((${column} > 1)? ((${column} > 2)? 'hitship' : 'hitwater') : 'default') : 'default'" th:data-x="${row.letter}" th:data-y="${s.index+1}" onclick="coords(this.getAttribute('data-x'), this.getAttribute('data-y'))"></td>
     </tr>
 </table>
 
 
+<div th:if="${myTurn}">
+    <h3>Your turn</h3>
+    <form id="form" action="/ships/fire" method="post">
+        <input type="hidden" name="fire" id="fire">
+    </form>
+</div>
 
-<form action="/ships/fire"  method="post">
-    <label for="fire"><b>Put in coords: </b></label>
-    <input type="text" name="fire" placeholder="Enter where to shoot" id="fire" required>
-    <button type="FIRE">Fire</button>
-</form></body>
+<div th:if="${!myTurn}">
+    <h3>Enemy's turn</h3>
+    <form id="reload" action="/ships" method="get"></form>
+</div>
+
+</body>
 </html>
