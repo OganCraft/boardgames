@@ -118,6 +118,8 @@ public class ShipsServlet extends HttpServlet {
 //                enemyShoot(shipBoard, messages);
             } else {
                 messages.add("What are you doing? You already shot that place");
+
+
             }
         }
         htmlCode(boards, false, resp, req, messages, room);

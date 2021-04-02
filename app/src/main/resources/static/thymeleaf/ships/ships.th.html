@@ -20,9 +20,13 @@
         function screenWidth() {
             alert("Total Width: " + screen.width);
         }
-        function coords(x, y) {
-            document.getElementById("fire").value = x + y;
-            document.getElementById("form").submit();
+        function coords(x, y, className) {
+            if(className === "default") {
+                document.getElementById("fire").value = x + y;
+                document.getElementById("form").submit();
+            }else {
+                alert("You already shot that place!");
+            }
         }
    </script>
     <script th:if="${!myTurn}">
@@ -49,7 +53,7 @@
     <tr><td class="column"></td><td th:each="column: ${columns}" th:text="${column}" width="17" align="center" class="number column">a</td></tr>
     <tr th:each="row: ${enemyRows}">
         <td th:text="${row.letter}" width="17" align="center" class="number">1</td>
-        <td th:each="column, s: ${row.columns}" th:class="(${column} > 0)? ((${column} > 1)? ((${column} > 2)? 'hitship' : 'hitwater') : 'default') : 'default'" th:data-x="${row.letter}" th:data-y="${s.index+1}" onclick="coords(this.getAttribute('data-x'), this.getAttribute('data-y'))"></td>
+        <td th:each="column, s: ${row.columns}" th:class="(${column} > 0)? ((${column} > 1)? ((${column} > 2)? 'hitship' : 'hitwater') : 'default') : 'default'" th:data-x="${row.letter}" th:data-y="${s.index+1}" onclick="coords(this.getAttribute('data-x'), this.getAttribute('data-y'), this.className)"></td>
     </tr>
 </table>
 
