@@ -18,6 +18,12 @@ public class MemoryUserRepository implements UserRepository {
         users.put("betka", new User("Bětka"));
         users.put("kaja", new User("Kája"));
         users.put("sarka", new User("Šárka"));
+        
+        users.put("svata", new User("Svaťa"));
+        users.put("dita", new User("Dita"));
+        users.put("aja", new User("Ája"));
+        users.put("kami", new User("Kamča"));
+        users.put("karol", new User("Karolínka"));
     }
 
     @Override
