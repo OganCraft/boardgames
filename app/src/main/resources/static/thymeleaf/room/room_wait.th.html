@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial scale=1">
     <link rel="stylesheet" type="text/css" media="all" href="/css/style.css"/>
     <title>Waiting room</title>
+    <script th:if="${session.user == room.owner}">
+        var interval = setInterval(reload, 20000);
+        function reload() {
+            document.getElementById("reload").submit();
+        }
+     </script>
 </head>
 <body>
 <div th:text="'Room owner: ' + ${room.owner.name}">Room owner: John</div>
@@ -30,6 +36,9 @@
         <li th:if="${session.user == room.owner}"><a href="/room/end" th:href="@{/room/end}">end</a></li>
         <li th:unless="${session.user == room.owner}"><a href="/room/leave" th:href="@{/room/leave}">leave</a></li>
     </ul>
+</div>
+<div th:if="${session.user == room.owner}">
+    <form id="reload" action="/room/wait" method="get"></form>
 </div>
 </body>
 </html>
