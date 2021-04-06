@@ -1,6 +1,6 @@
 package board.games.ships;
 
-import static board.games.utils.Rng.rng;
+import static board.utils.Rng.rng;
 
 public class ShipPlace {
     private static boolean placeShipPriv(int[][] shipBoard, int mX, int mY, Ships type) {

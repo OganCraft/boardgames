@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.*;
 
-import static board.games.utils.Rng.rng;
+import static board.utils.Rng.rng;
 
 public class ShipsServlet extends HttpServlet {
 
@@ -73,7 +73,7 @@ public class ShipsServlet extends HttpServlet {
 
     private Boards getBoards(Room room, User user) {
         // create copy of players, so we can freely modify the collection
-        List<String> players = new ArrayList((List<String>) room.parameters().get("playerNames"));
+        List<String> players = new ArrayList<>((List<String>) room.parameters().get("playerNames"));
 
         int[][] shipBoard = (int[][]) room.parameters().get(user.getName());
         players.remove(user.getName());
@@ -286,6 +286,7 @@ public class ShipsServlet extends HttpServlet {
         List<String> x = new ArrayList<>();
         List<OneRow> y = new ArrayList<>();
         List<OneRow> z = new ArrayList<>();
+        boolean gameOver = room.isGameOver();
         // create rows
         for(int i = 0; i < 10; i++) {
             // one column for the first row
@@ -306,6 +307,7 @@ public class ShipsServlet extends HttpServlet {
         req.setAttribute("rows", y);
         req.setAttribute("enemyRows", z);
         req.setAttribute("myTurn", myTurn);
+        req.setAttribute("gameOver", gameOver);
         getServletContext().getRequestDispatcher("/th/ships/ships.th").forward(req, resp);
     }
 }

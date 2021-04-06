@@ -11,9 +11,11 @@
     .hitwater{background: blue; color: blue;}
     .number{background: white; color: black;}
     }
-    --></style>
+    -->
+    </style>
     <script th:inline="javascript">
           var myTurn = [[${myTurn}]];
+
     </script>
 
     <script th:if="${myTurn}">
@@ -28,46 +30,66 @@
                 alert("You already shot that place!");
             }
         }
-   </script>
+
+    </script>
     <script th:if="${!myTurn}">
         var interval = setInterval(reload, 500);
         function reload() {
             document.getElementById("reload").submit();
         }
-     </script>
+
+    </script>
 
 </head>
 <body>
 <table border="10" cellspacing="0" cellpadding="0">
-    <tr><td></td><td th:each="column: ${columns}" th:text="${column}" width="17" align="center" class="number"></td></tr>
+    <tr>
+        <td></td>
+        <td th:each="column: ${columns}" th:text="${column}" width="17" align="center" class="number"></td>
+    </tr>
     <tr th:each="row: ${rows}">
         <td th:text="${row.letter}" width="17" align="center" class="number"></td>
-        <td th:each="column: ${row.columns}" th:class="(${column} > 0)? ((${column} > 1)? ((${column} > 2)? 'hitship' : 'hitwater') : 'ship') : 'water'"></td>
+        <td th:each="column: ${row.columns}"
+            th:class="(${column} > 0)? ((${column} > 1)? ((${column} > 2)? 'hitship' : 'hitwater') : 'ship') : 'water'"></td>
     </tr>
 </table>
 
 
-
-
 <table border="10" cellspacing="0" cellpadding="0">
-    <tr><td class="column"></td><td th:each="column: ${columns}" th:text="${column}" width="17" align="center" class="number column">a</td></tr>
+    <tr>
+        <td class="column"></td>
+        <td th:each="column: ${columns}" th:text="${column}" width="17" align="center" class="number column">a</td>
+    </tr>
     <tr th:each="row: ${enemyRows}">
         <td th:text="${row.letter}" width="17" align="center" class="number">1</td>
-        <td th:each="column, s: ${row.columns}" th:class="(${column} > 0)? ((${column} > 1)? ((${column} > 2)? 'hitship' : 'hitwater') : 'default') : 'default'" th:data-x="${row.letter}" th:data-y="${s.index+1}" onclick="coords(this.getAttribute('data-x'), this.getAttribute('data-y'), this.className)"></td>
+        <td th:each="column, s: ${row.columns}"
+            th:class="(${column} > 0)? ((${column} > 1)? ((${column} > 2)? 'hitship' : 'hitwater') : 'default') : 'default'"
+            th:data-x="${row.letter}" th:data-y="${s.index+1}"
+            onclick="coords(this.getAttribute('data-x'), this.getAttribute('data-y'), this.className)"></td>
     </tr>
 </table>
 
 
 <div th:if="${myTurn}">
-    <h3>Your turn</h3>
-    <form id="form" action="/ships/fire" method="post">
-        <input type="hidden" name="fire" id="fire">
-    </form>
+    <div th:if="${gameOver}">
+        <h3>You lost!</h3>
+    </div>
+    <div th:if="${!gameOver}">
+        <h3>Your turn</h3>
+        <form id="form" action="/ships/fire" method="post">
+            <input type="hidden" name="fire" id="fire">
+        </form>
+    </div>
 </div>
 
 <div th:if="${!myTurn}">
-    <h3>Enemy's turn</h3>
-    <form id="reload" action="/ships" method="get"></form>
+    <div th:if="${gameOver}">
+        <h3>You won!</h3>
+    </div>
+    <div th:if="${!gameOver}">
+        <h3>Enemy's turn</h3>
+        <form id="reload" action="/ships" method="get"></form>
+    </div>
 </div>
 
 </body>

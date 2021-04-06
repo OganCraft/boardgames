@@ -1,4 +1,4 @@
-package board.games.utils;
+package board.utils;
 
 public class Rng {
     public static int rng(int min, int max) {
