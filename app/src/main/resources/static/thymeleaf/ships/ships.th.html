@@ -10,7 +10,8 @@
     .hitship{background: red; color: red;}
     .hitwater{background: blue; color: blue;}
     .number{background: white; color: black;}
-    }
+    div.me { float: left; }
+    div.enemy { }
     -->
     </style>
     <script th:inline="javascript">
@@ -42,6 +43,7 @@
 
 </head>
 <body>
+<div class="me">
 <table border="10" cellspacing="0" cellpadding="0">
     <tr>
         <td></td>
@@ -53,8 +55,9 @@
             th:class="(${column} > 0)? ((${column} > 1)? ((${column} > 2)? 'hitship' : 'hitwater') : 'ship') : 'water'"></td>
     </tr>
 </table>
+</div>
 
-
+<div class="enemy">
 <table border="10" cellspacing="0" cellpadding="0">
     <tr>
         <td class="column"></td>
@@ -68,6 +71,7 @@
             onclick="coords(this.getAttribute('data-x'), this.getAttribute('data-y'), this.className)"></td>
     </tr>
 </table>
+</div>
 
 
 <div th:if="${myTurn}">
