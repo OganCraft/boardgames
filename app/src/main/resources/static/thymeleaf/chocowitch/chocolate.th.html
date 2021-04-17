@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <style><!--
+
+    table.goleft {
+        float: left;
+    }
+
+    img {
+        height: 100px;
+        width: auto;
+    }
+
+    table.goright {
+        position: absolute;
+        top: 0px;
+        right: 0px;
+    }
+
+    table.goup {
+        float: top;
+        text-align: center;
+        width: 165px;
+    }
+
+    -->
+
+    </style>
+    <script th:inline="javascript">
+        var pulledCard = [[${pulledCard}]];
+        var isWitch = [[${isWitch}]];
+        alert(pulledCard);
+        alert(isWitch);
+    </script>
+</head>
+<body>
+<div>
+    <table class="goleft"> <!--the use th:each for every other player-->
+        <tr>
+            <td>
+                <table th:each="player: ${players}">
+                    <tr>
+                        <td style="cellpadding: 100px, 100px, 100px, 100px;" th:text="${player.name}"><!--playerName-->
+                            name
+                        </td>
+                        <td><img src="/images/chocolate/butter.jpg"></td>
+                        <td><img src="/images/chocolate/cacao.jpg"></td>
+                        <td><img src="/images/chocolate/milk.jpg"></td>
+                        <td><img src="/images/chocolate/nuts.jpg"></td>
+                        <td><img src="/images/chocolate/sugar.jpg"></td>
+                        <td><img src="/images/chocolate/vanilla.jpg"></td>
+                    </tr>
+                    <tr>
+                        <td><!--nothing--></td>
+                        <td style="text-align:center" th:each="card : ${myCards}" th:text="${card.value}"></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+    <table class="goup">
+        <tr th:each="pulledCard: ${pulledCards}">
+            <td th:text="${pulledCard}"></td>
+        </tr>
+    </table>
+    <table class="goright">
+        <tr>
+            <td><img style="height: 500px; width: auto" th:src="'/images/chocolate/' + ${pulledCard} + '.jpg'"></td>
+            <td><img src="/images/chocolate/cover.jpg" , style="height: 500px; width: auto"></td>
+        </tr>
+        <div  th:if="${isMyTurn}">
+            <tr>
+                <td>
+                    <form action="/chocolate/pullCard" method="get">
+                        <input type="submit" value="pullCard" style="width: 308px; height: auto"/>
+                    </form>
+                </td>
+                <td>
+                    <form action="/chocolate/endTurn" method="get">
+                        <input type="submit" value="endTurn" style="width: 308px; height: auto"/>
+                    </form>
+                </td>
+            </tr>
+        </div>
+    </table>
+</div>
+</body>
+</html>

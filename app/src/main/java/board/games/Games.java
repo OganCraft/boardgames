@@ -1,7 +1,8 @@
 package board.games;
 
 public enum Games {
-    SHIPS("Ships", 2, 2, "/ships");
+    SHIPS("Ships", 2, 2, "/ships"),
+    CHOCO_WITCH("ChocoWitch", 2, 6, "/chocolate");
 
 
     private final String name;
