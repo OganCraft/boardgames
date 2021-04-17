@@ -1,8 +1,8 @@
 package board.games;
 
 public enum Games {
-    SHIPS("Ships", 2, 2, "/ships");
-
+    SHIPS("Ships", 2, 2, "/ships"),
+    WIZARD("Wizard", 3, 6, "/wizard");
 
     private final String name;
     private final int min;

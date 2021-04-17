@@ -1,0 +1,141 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Wizard Game</title>
+<!--    <link rel="stylesheet" href="/wizard/css/wizard.css">-->
+    <style th:inline="text">
+        [# th:each="card : ${cards}"]
+        .[(${card.color})]-[(${card.sign})] {  background-image: url("/img/wizard/[(${card.color})]/[(${card.sign})].jpg"); }[/]
+        .cover { background-image: url("/img/wizard/w-cover.jpg"); }
+    </style>
+    <style>
+        .card-slot {
+            background-color: #cccccc; /* Used if the image is unavailable */
+            background-position: center; /* Center the image */
+            background-repeat: no-repeat; /* Do not repeat the image */
+            background-size: cover; /* Resize the background image to cover the entire container */
+            width: 90px;
+            height: 140px; /* You must set a specified height */
+            float: left;
+        }
+        .hidden {
+            /* as if the element was not there*/
+            display: none;
+        }
+        .invisible {
+            /* not visible but still part of the layout */
+            visibility: hidden;
+        }
+        .empty {
+
+        }
+        .margin {
+            margin-right: 3px;
+            margin-bottom: 3px;
+        }
+    </style>
+    <script th:inline="javascript">
+        let players = [
+            [# th:each="player : ${players}"]
+            [[${player.id}]],
+            [/]
+        ];
+
+        var myCards = [];
+
+        function cardToStyleClass(card) {
+            var color = card.color.toLowerCase();
+
+            var sign = card.value;
+            if (card.value < 1)
+                sign = "n";
+            else if (card.value > 13)
+                sign = "z";
+
+            return color + "-" + sign;
+        }
+
+        // ajax: https://developer.mozilla.org/en-US/docs/Web/Guide/AJAX/Getting_Started
+        /**
+         * Load the initial state of the game.
+         */
+        function onload() {
+            let httpRequest = new XMLHttpRequest();
+            httpRequest.onreadystatechange = function () {
+                // processing the response
+                if (httpRequest.readyState === XMLHttpRequest.DONE) {
+                    // everything is good, the response was received.
+                    if (httpRequest.status === 200) {
+                        var response = JSON.parse(httpRequest.responseText);
+                        document.getElementById("turn-" + response.onTurn).innerHTML = "&radic;";
+
+                        for (var i = 0; i < response.myCards.length; i++) {
+                            var card = response.myCards[i];
+                            var element = document.getElementById("slot-" + i);
+                            myCards.push(card);
+
+                            element.className = ""; // clear the list
+                            element.classList.add("card-slot", "margin", cardToStyleClass(card));
+                        }
+
+                        var trump = response.trump;
+                        var trumpElement = document.getElementById("trump-slot");
+                        trumpElement.className = ""; // clear the list
+                        if (trump === null) {
+                            trumpElement.classList.add("card-slot", "empty")
+                        } else {
+                            trumpElement.classList.add("card-slot", cardToStyleClass(trump))
+                        }
+                    } else {
+                        alert("Chyba při komunikaci se serverem: " + httpRequest.status);
+                    }
+                } else {
+                    // the response is not ready yet.
+                }
+            }
+            httpRequest.open("GET", "/wizard/get-state", true);
+            httpRequest.send();
+        }
+
+        function onMyCard(index) {
+            alert("card: " + cardToStyleClass(myCards[index]));
+        }
+    </script>
+</head>
+<body onload="onload()">
+
+<fieldset id="myCards">
+    <legend>Moje karty v ruce</legend>
+    <div th:each="slot, iter: ${slots}" th:id="'slot-' + ${slot}" class="card-slot hidden" th:data-index="${iter.index}" onclick="onMyCard(this.getAttribute('data-index'))"></div>
+</fieldset>
+
+<fieldset id="trump">
+    <legend>Trumf</legend>
+    <div id="trump-slot" class="card-slot"></div>
+</fieldset>
+
+<fieldset id="gameDesk">
+    <legend>Hrací stůl</legend>
+    <table width="1" border="1" >
+        <tr>
+            <th>Hráč</th>
+            <th>Zahraná karta</th>
+            <th>Počet vyhraných štychů</th>
+            <th>Na tahu</th>
+        </tr><tr th:each="player, stat: ${players}">
+        <td th:text="${player.name}">Hráč 1</td>
+        <td><div th:id="'played-' + ${player.id}" class="card-slot cover"></div></td>
+        <td><div th:id="'win-' + ${player.id}"></div></td>
+        <td><div th:id="'turn-' + ${player.id}"></div></td>
+    </tr>
+    </table>
+</fieldset>
+
+<fieldset id="score">
+    <legend>Skóre</legend>
+    <div>TODO</div>
+</fieldset>
+
+</body>
+</html>

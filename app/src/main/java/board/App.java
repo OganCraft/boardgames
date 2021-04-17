@@ -1,8 +1,8 @@
 package board;
 
 import board.filter.AuthenticationFilter;
-import board.games.hello.HelloServlet;
 import board.games.ships.ShipsServlet;
+import board.games.wizard.WizardServlet;
 import board.room.RoomManager;
 import board.room.RoomManagerImpl;
 import board.room.RoomServlet;
@@ -45,12 +45,12 @@ public class App {
 //        context.addFilter(ThymeleafFilter.class, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD));
 
         // system servlets
-        context.addServlet(HelloServlet.class, "/hello");
         context.addServlet(UserServlet.class, "/user/*");
         context.addServlet(RoomServlet.class, "/room/*");
 
         // game servlets
         context.addServlet(ShipsServlet.class, "/ships/*");
+        context.addServlet(WizardServlet.class, "/wizard/*");
 
         // html template servlet
 //        context.addServlet(ThymeleafServlet.class, "/thymeleaf");

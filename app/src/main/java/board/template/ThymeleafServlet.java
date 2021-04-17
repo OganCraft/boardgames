@@ -41,9 +41,6 @@ public class ThymeleafServlet extends HttpServlet {
         resp.setHeader("Cache-Control", "no-cache");
         resp.setDateHeader("Expires", 0);
 
-        // common variables
-        webContext.setVariable("user", req.getSession().getAttribute("user"));
-
         String requestPath = req.getRequestURI();
         String path = requestPath.substring(3);
         engine.process(path, webContext, resp.getWriter());
