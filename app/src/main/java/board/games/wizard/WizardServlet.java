@@ -35,6 +35,12 @@ public class WizardServlet extends HttpServlet {
             case "/get-state":
                 renderState(resp, user, state);
                 break;
+            case "/get-message":
+                renderMessage(resp, user, state);
+                break;
+            case "/play":
+                playCard(req, resp, user, state);
+                break;
             default:
                 renderHtml(req, resp, user, room, state);
                 break;
@@ -50,36 +56,23 @@ public class WizardServlet extends HttpServlet {
                 state.getActualRoundCards(),
                 state.getTrump()
         ));
+    }
 
-/*
-        JSONObject json = new JSONObject();
+    /**
+     * This method is called by players who are not on turn. We need to inform them what has happened in between
+     * of get-message requests.
+     */
+    private void renderMessage(HttpServletResponse resp, User user, WizardState state) throws IOException {
+        Json.renderJson(resp, new GetMessageJson(
+                state.getOnTurn().getId(),
+                state.getActualRoundCards()
+        ));
+    }
 
-        json.put("userId", user.getId());
-        json.put("userName", user.getName());
+    private void playCard(HttpServletRequest req, HttpServletResponse resp, User user, WizardState state) throws IOException {
+        // todo: get the move sorted
 
-        JSONArray myCards = new JSONArray();
-        List<Card> _myCards = state.getCardsInHand().get(user.getId());
-        for (Card card : _myCards) {
-            JSONObject c = new JSONObject();
-            c.put("value", card.getValue());
-            c.put("color", card.getColor());
-            myCards.add(c);
-        }
-        json.put("myCards", myCards);
-
-        JSONArray actualCards = new JSONArray();
-        Map<String, Card> actualRoundCards = state.getActualRoundCards();
-        for (Map.Entry<String, Card> entry : actualRoundCards.entrySet()) {
-            JSONObject c = new JSONObject();
-            c.put("userId", entry.getKey());
-            c.put("value", entry.getValue().getValue());
-            c.put("color", entry.getValue().getColor());
-            actualCards.add(c);
-        }
-        json.put("actualCards", actualCards);
-
-        Json.renderJson(resp, json);
-*/
+        renderMessage(resp, user, state);
     }
 
     private void renderHtml(HttpServletRequest req, HttpServletResponse resp, User user, Room room, WizardState state) throws ServletException, IOException {

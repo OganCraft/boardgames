@@ -4,6 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Wizard Game</title>
 <!--    <link rel="stylesheet" href="/wizard/css/wizard.css">-->
+    <script src="/js/ajax.js"></script>
     <style th:inline="text">
         [# th:each="card : ${cards}"]
         .[(${card.color})]-[(${card.sign})] {  background-image: url("/img/wizard/[(${card.color})]/[(${card.sign})].jpg"); }[/]
@@ -42,7 +43,10 @@
             [/]
         ];
 
+        var interval;
         var myCards = [];
+        var me; // userId
+        var onTurn; // userId
 
         function cardToStyleClass(card) {
             var color = card.color.toLowerCase();
@@ -61,45 +65,89 @@
          * Load the initial state of the game.
          */
         function onload() {
-            let httpRequest = new XMLHttpRequest();
-            httpRequest.onreadystatechange = function () {
-                // processing the response
-                if (httpRequest.readyState === XMLHttpRequest.DONE) {
-                    // everything is good, the response was received.
-                    if (httpRequest.status === 200) {
-                        var response = JSON.parse(httpRequest.responseText);
-                        document.getElementById("turn-" + response.onTurn).innerHTML = "&radic;";
+            ajax(onGetState, "GET", "/wizard/get-state");
+        }
 
-                        for (var i = 0; i < response.myCards.length; i++) {
-                            var card = response.myCards[i];
-                            var element = document.getElementById("slot-" + i);
-                            myCards.push(card);
+        function onGetState(response) {
+            me = response.userId;
+            onTurn = response.onTurn;
 
-                            element.className = ""; // clear the list
-                            element.classList.add("card-slot", "margin", cardToStyleClass(card));
-                        }
+            document.getElementById("turn-" + onTurn).innerHTML = "&radic;";
+            // todo: use different css style to highlight the "onTurn" player
 
-                        var trump = response.trump;
-                        var trumpElement = document.getElementById("trump-slot");
-                        trumpElement.className = ""; // clear the list
-                        if (trump === null) {
-                            trumpElement.classList.add("card-slot", "empty")
-                        } else {
-                            trumpElement.classList.add("card-slot", cardToStyleClass(trump))
-                        }
-                    } else {
-                        alert("Chyba při komunikaci se serverem: " + httpRequest.status);
-                    }
-                } else {
-                    // the response is not ready yet.
-                }
+            for (var i = 0; i < response.myCards.length; i++) {
+                var card = response.myCards[i];
+                var element = document.getElementById("slot-" + i);
+                myCards.push(card);
+
+                element.className = ""; // clear the list
+                element.classList.add("card-slot", "margin", cardToStyleClass(card));
             }
-            httpRequest.open("GET", "/wizard/get-state", true);
-            httpRequest.send();
+
+            var trump = response.trump;
+            var trumpElement = document.getElementById("trump-slot");
+            trumpElement.className = ""; // clear the list
+            if (trump === undefined) {
+                trumpElement.classList.add("card-slot", "empty")
+            } else {
+                trumpElement.classList.add("card-slot", cardToStyleClass(trump))
+            }
+
+            for (var i = 0; i < response.actualCards.length; i++) {
+                var actualCard = response.actualCards[i];
+                var element = document.getElementById("played-" + actualCard.userId);
+                element.classList.remove("cover");
+                element.classList.add(cardToStyleClass(actualCard.card));
+            }
+
+            if (me !== onTurn) {
+                // be notified about what other's are doing
+                interval = setInterval(requestMessage, 1000);
+            }
         }
 
         function onMyCard(index) {
-            alert("card: " + cardToStyleClass(myCards[index]));
+            if (me === onTurn) {
+                alert("card: " + cardToStyleClass(myCards[index]));
+
+                // todo: call the server
+            } else
+                alert("Nejsi na tahu!")
+        }
+
+        /**
+         * Check onTurn change - if there is a any, it means that the previous "onTurn" player has played a card
+         * and we need
+         * 1) show the played card
+         * 2) change the actual player who is on turn to the new "onTurn" player
+         */
+        function requestMessage() {
+            if (!onGetMessageReceived)
+                return;
+
+            onGetMessageReceived = false;
+            ajax(onGetMessage, "GET", "/wizard/get-message")
+        }
+
+        // request overlap protection
+        var onGetMessageReceived = true;
+        function onGetMessage(response) {
+            if (onTurn !== response.onTurn) {
+                for (var i = 0; i < response.actualCards.length; i++) {
+                    var actualCard = response.actualCards[i];
+                    if (onTurn === actualCard.userId) {
+                        var element = document.getElementById("played-" + actualCard.userId);
+                        element.classList.remove("cover");
+                        element.classList.add(cardToStyleClass(actualCard.card));
+                    }
+                }
+                onTurn = response.onTurn;
+
+                if (me === onTurn)
+                    clearInterval(interval);
+            }
+
+            onGetMessageReceived = true;
         }
     </script>
 </head>

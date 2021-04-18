@@ -23,8 +23,7 @@ class WizardState {
     private User onTurn;
 
     public WizardState(Room room) {
-//        round = 0;
-        round = 16;  // todo: just checking the look&feel with more cards
+        round = 0;
         cards = new HashMap<>();
         score = new HashMap<>();
         wins = new HashMap<>();
@@ -45,7 +44,6 @@ class WizardState {
                 break;
             }
         }
-
     }
 
     public int getRound() {
