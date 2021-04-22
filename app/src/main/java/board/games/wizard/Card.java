@@ -31,6 +31,10 @@ class Card {
         return value < 1;
     }
 
+    boolean isCommon() {
+        return value > 0 && value < 14;
+    }
+
     public int getValue() {
         return value;
     }
@@ -59,10 +63,25 @@ class Card {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Card card = (Card) o;
+
+        if (value != card.value) return false;
+        return color == card.color;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = value;
+        result = 31 * result + color.hashCode();
+        return result;
+    }
+
+    @Override
     public String toString() {
-        return "Card{" +
-                "value=" + value +
-                ", color=" + color +
-                '}';
+        return "{" + getSign() + ", " + getColor() + "}";
     }
 }

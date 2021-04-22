@@ -6,11 +6,12 @@ import java.util.Map;
 /**
  * Information for a waiting player for its turn.
  */
-public class GetMessageJson {
+public class CardPlayedJson extends EventJson {
     private String onTurn;
     private List<GetStateJson.ActualCards> actualCards;
 
-    public GetMessageJson(String onTurn, Map<String, Card> actualCards) {
+    public CardPlayedJson(String onTurn, Map<String, Card> actualCards) {
+        super("card-played");
         this.onTurn = onTurn;
         this.actualCards = GetStateJson.toActualCards(actualCards);
     }

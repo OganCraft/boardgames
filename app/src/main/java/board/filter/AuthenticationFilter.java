@@ -59,7 +59,7 @@ public class AuthenticationFilter implements Filter {
             response.sendRedirect("/user/login");
             return;
         } else {
-            System.out.println("user is logged in: " + user);
+//            System.out.println("user is logged in: " + user);
         }
 
         chain.doFilter(servletRequest, servletResponse);

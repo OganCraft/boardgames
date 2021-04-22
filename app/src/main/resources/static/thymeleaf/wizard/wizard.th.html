@@ -37,21 +37,16 @@
         }
     </style>
     <script th:inline="javascript">
-        let players = [
-            [# th:each="player : ${players}"]
-            [[${player.id}]],
-            [/]
-        ];
-
-        var interval;
-        var myCards = [];
-        var me; // userId
-        var onTurn; // userId
+        let players = new Map();
+        let interval;
+        let myCards = [];
+        let me; // userId
+        let onTurn; // userId
 
         function cardToStyleClass(card) {
-            var color = card.color.toLowerCase();
+            let color = card.color.toLowerCase();
 
-            var sign = card.value;
+            let sign = card.value;
             if (card.value < 1)
                 sign = "n";
             else if (card.value > 13)
@@ -72,20 +67,28 @@
             me = response.userId;
             onTurn = response.onTurn;
 
-            document.getElementById("turn-" + onTurn).innerHTML = "&radic;";
+            for (let p = 0; p < response.players.length; p++) {
+                // store order of individual players
+                let userId = response.players[p].id;
+                players.set(userId, p);
+                let element = document.getElementById("name-" +p);
+                element.innerText = response.players[p].name;
+            }
+
+            document.getElementById("turn-" + players.get(onTurn)).innerHTML = "&radic;";
             // todo: use different css style to highlight the "onTurn" player
 
-            for (var i = 0; i < response.myCards.length; i++) {
-                var card = response.myCards[i];
-                var element = document.getElementById("slot-" + i);
+            for (let i = 0; i < response.myCards.length; i++) {
+                let card = response.myCards[i];
+                let element = document.getElementById("slot-" + i);
                 myCards.push(card);
 
                 element.className = ""; // clear the list
                 element.classList.add("card-slot", "margin", cardToStyleClass(card));
             }
 
-            var trump = response.trump;
-            var trumpElement = document.getElementById("trump-slot");
+            let trump = response.trump;
+            let trumpElement = document.getElementById("trump-slot");
             trumpElement.className = ""; // clear the list
             if (trump === undefined) {
                 trumpElement.classList.add("card-slot", "empty")
@@ -93,26 +96,32 @@
                 trumpElement.classList.add("card-slot", cardToStyleClass(trump))
             }
 
-            for (var i = 0; i < response.actualCards.length; i++) {
-                var actualCard = response.actualCards[i];
-                var element = document.getElementById("played-" + actualCard.userId);
+            for (let i = 0; i < response.actualCards.length; i++) {
+                let actualCard = response.actualCards[i];
+                let element = document.getElementById("played-" + players.get(actualCard.userId));
                 element.classList.remove("cover");
                 element.classList.add(cardToStyleClass(actualCard.card));
             }
 
             if (me !== onTurn) {
-                // be notified about what other's are doing
+                // be notified about what others are doing
                 interval = setInterval(requestMessage, 1000);
             }
         }
 
         function onMyCard(index) {
             if (me === onTurn) {
-                alert("card: " + cardToStyleClass(myCards[index]));
-
-                // todo: call the server
+                let slot = document.getElementById("slot-" + index);
+                slot.className = "card-slot";
+                let params = "color=" + myCards[index].color + "&value=" + myCards[index].value;
+                ajax(onCardPlayed, "GET", "/wizard/play-card?" + params);
             } else
                 alert("Nejsi na tahu!")
+        }
+
+        function onCardPlayed(response) {
+            onGetMessage(response)
+            interval = setInterval(requestMessage, 1000);
         }
 
         /**
@@ -130,24 +139,44 @@
         }
 
         // request overlap protection
-        var onGetMessageReceived = true;
-        function onGetMessage(response) {
-            if (onTurn !== response.onTurn) {
-                for (var i = 0; i < response.actualCards.length; i++) {
-                    var actualCard = response.actualCards[i];
-                    if (onTurn === actualCard.userId) {
-                        var element = document.getElementById("played-" + actualCard.userId);
-                        element.classList.remove("cover");
-                        element.classList.add(cardToStyleClass(actualCard.card));
-                    }
-                }
-                onTurn = response.onTurn;
+        let onGetMessageReceived = true;
+        function onGetMessage(message) {
+            console.log("event: " + message.event);
+            if (message.event === "error")
+                alert("Chyba: " + message.message);
+            else if (message.event === "card-played")
+                onCardPlayedEvent(message);
+            else if (message.event === "end-of-round")
+                onEndOfRoundEvent(message);
+            onGetMessageReceived = true;
+        }
 
-                if (me === onTurn)
-                    clearInterval(interval);
+        function onCardPlayedEvent(message) {
+            for (let i = 0; i < message.actualCards.length; i++) {
+                let actualCard = message.actualCards[i];
+                let index = players.get(actualCard.userId);
+                let element = document.getElementById("played-" + index);
+                if (element.classList.contains("cover")) {
+                    element.classList.remove("cover");
+                    element.classList.add(cardToStyleClass(actualCard.card));
+                }
+                document.getElementById("turn-" + index).innerHTML = "";
             }
 
-            onGetMessageReceived = true;
+            if (message.onTurn !== undefined && message.onTurn !== onTurn) {
+                onTurn = message.onTurn;
+                document.getElementById("turn-" + players.get(onTurn)).innerHTML = "&radic;";
+
+                if (onTurn === me)
+                    clearInterval(interval);
+            }
+        }
+
+        function onEndOfRoundEvent(message) {
+            onCardPlayedEvent(message);
+            clearInterval(interval);
+
+
         }
     </script>
 </head>
@@ -172,10 +201,10 @@
             <th>Počet vyhraných štychů</th>
             <th>Na tahu</th>
         </tr><tr th:each="player, stat: ${players}">
-        <td th:text="${player.name}">Hráč 1</td>
-        <td><div th:id="'played-' + ${player.id}" class="card-slot cover"></div></td>
-        <td><div th:id="'win-' + ${player.id}"></div></td>
-        <td><div th:id="'turn-' + ${player.id}"></div></td>
+        <td><div th:id="'name-' + ${stat.index}">Hráč 1</td>
+        <td><div th:id="'played-' + ${stat.index}" class="card-slot cover"></div></td>
+        <td><div th:id="'win-' + ${stat.index}"></div></td>
+        <td><div th:id="'turn-' + ${stat.index}"></div></td>
     </tr>
     </table>
 </fieldset>

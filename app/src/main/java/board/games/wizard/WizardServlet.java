@@ -11,8 +11,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Deque;
-import java.util.LinkedList;
 import java.util.List;
 
 public class WizardServlet extends HttpServlet {
@@ -38,7 +36,7 @@ public class WizardServlet extends HttpServlet {
             case "/get-message":
                 renderMessage(resp, user, state);
                 break;
-            case "/play":
+            case "/play-card":
                 playCard(req, resp, user, state);
                 break;
             default:
@@ -52,27 +50,60 @@ public class WizardServlet extends HttpServlet {
                 user.getId(),
                 user.getName(),
                 state.getOnTurn().getId(),
+                state.getPlayers(),
                 state.getCardsInHand().get(user.getId()),
                 state.getActualRoundCards(),
                 state.getTrump()
         ));
     }
 
+    private void renderMessage(HttpServletResponse resp, User user, WizardState state) throws IOException {
+        if (state.isEndOfGame())
+            renderEndOfGameMessage(resp, user, state);
+        else if (state.isEndOfRound())
+            renderEndOfRoundMessage(resp, user, state);
+        else
+            renderCardPlayedMessage(resp, user, state);
+    }
+
     /**
      * This method is called by players who are not on turn. We need to inform them what has happened in between
      * of get-message requests.
      */
-    private void renderMessage(HttpServletResponse resp, User user, WizardState state) throws IOException {
-        Json.renderJson(resp, new GetMessageJson(
+    private void renderCardPlayedMessage(HttpServletResponse resp, User user, WizardState state) throws IOException {
+        Json.renderJson(resp, new CardPlayedJson(
                 state.getOnTurn().getId(),
                 state.getActualRoundCards()
         ));
     }
 
-    private void playCard(HttpServletRequest req, HttpServletResponse resp, User user, WizardState state) throws IOException {
-        // todo: get the move sorted
+    private void renderEndOfRoundMessage(HttpServletResponse resp, User user, WizardState state) throws IOException {
+        Json.renderJson(resp, new EndOfRoundJson(
+                state.getActualRoundCards()
+                // todo
+        ));
+    }
 
-        renderMessage(resp, user, state);
+    private void renderEndOfGameMessage(HttpServletResponse resp, User user, WizardState state) {
+        // todo
+    }
+
+    private void renderErrorMessage(HttpServletResponse resp, String error) throws IOException {
+        Json.renderJson(resp, new ErrorJson(error));
+    }
+
+    private void playCard(HttpServletRequest req, HttpServletResponse resp, User user, WizardState state) throws IOException {
+        Card card = new Card(
+                Integer.parseInt(req.getParameter("value")),
+                Card.Color.valueOf(req.getParameter("color"))
+        );
+
+        String validationMessage = WizardRules.playCard(user, state, card);
+
+        if (validationMessage == null)
+            renderMessage(resp, user, state);
+        else
+            renderErrorMessage(resp, validationMessage);
     }
 
     private void renderHtml(HttpServletRequest req, HttpServletResponse resp, User user, Room room, WizardState state) throws ServletException, IOException {
@@ -80,29 +111,9 @@ public class WizardServlet extends HttpServlet {
         List<Integer> slots = new ArrayList<>(20);
         for (int i = 0; i < 20; i++) slots.add(i);
 
-        req.setAttribute("players", sortPlayers(user, room));
+        req.setAttribute("players", room.players());
         req.setAttribute("slots", slots);
         req.setAttribute("cards", Card.allCards());
         getServletContext().getRequestDispatcher("/th/wizard/wizard.th").forward(req, resp);
-    }
-
-    /**
-     * Sort players in such a way that the actual user is always the first one.
-     *
-     * @param user a user from the session (actual user)
-     * @param room the room contains a list of players
-     * @return players sorted that the actual user is always the first one but neighbors are still the same
-     * for each player
-     */
-    private Object sortPlayers(User user, Room room) {
-        Deque<User> players = new LinkedList<>(room.players());
-
-        while (!players.peek().getId().equals(user.getId())) {
-            // take the first player and put it to the end
-            User player = players.poll();
-            players.addLast(player);
-        }
-
-        return players;
     }
 }
