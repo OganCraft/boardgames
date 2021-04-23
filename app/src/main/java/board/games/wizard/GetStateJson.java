@@ -17,9 +17,9 @@ class GetStateJson {
 
     private List<User> players; // order of players in this round
     private List<Card> myCards;
-    private List<ActualCards> actualCards;
+    private List<PlayedCard> playedCards;
 
-    public GetStateJson(String userId, String userName, String onTurn, List<User> players, List<Card> myCards, Map<String, Card> actualCards, Card trump) {
+    public GetStateJson(String userId, String userName, String onTurn, List<User> players, List<Card> myCards, Map<String, Card> playedCards, Card trump) {
         this.userId = userId;
         this.userName = userName;
         this.onTurn = onTurn;
@@ -27,21 +27,21 @@ class GetStateJson {
         this.myCards = myCards;
         this.trump = trump;
 
-        this.actualCards = toActualCards(actualCards);
+        this.playedCards = toPlayedCards(playedCards);
     }
 
-    static List<ActualCards> toActualCards(Map<String, Card> actualCards) {
-        List<ActualCards> list = new ArrayList<>(actualCards.size());
+    static List<PlayedCard> toPlayedCards(Map<String, Card> actualCards) {
+        List<PlayedCard> list = new ArrayList<>(actualCards.size());
         for (Map.Entry<String, Card> entry : actualCards.entrySet())
-            list.add(new ActualCards(entry.getKey(), entry.getValue()));
+            list.add(new PlayedCard(entry.getKey(), entry.getValue()));
         return list;
     }
 
-    static class ActualCards {
+    static class PlayedCard {
         private String userId;
         private Card card;
 
-        public ActualCards(String userId, Card card) {
+        public PlayedCard(String userId, Card card) {
             this.userId = userId;
             this.card = card;
         }

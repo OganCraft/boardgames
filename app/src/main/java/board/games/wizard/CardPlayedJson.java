@@ -8,11 +8,11 @@ import java.util.Map;
  */
 public class CardPlayedJson extends EventJson {
     private String onTurn;
-    private List<GetStateJson.ActualCards> actualCards;
+    private List<GetStateJson.PlayedCard> actualCards;
 
     public CardPlayedJson(String onTurn, Map<String, Card> actualCards) {
         super("card-played");
         this.onTurn = onTurn;
-        this.actualCards = GetStateJson.toActualCards(actualCards);
+        this.actualCards = GetStateJson.toPlayedCards(actualCards);
     }
 }

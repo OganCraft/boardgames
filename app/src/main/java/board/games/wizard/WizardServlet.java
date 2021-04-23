@@ -52,7 +52,7 @@ public class WizardServlet extends HttpServlet {
                 state.getOnTurn().getId(),
                 state.getPlayers(),
                 state.getCardsInHand().get(user.getId()),
-                state.getActualRoundCards(),
+                state.getPlayedCards(),
                 state.getTrump()
         ));
     }
@@ -73,14 +73,14 @@ public class WizardServlet extends HttpServlet {
     private void renderCardPlayedMessage(HttpServletResponse resp, User user, WizardState state) throws IOException {
         Json.renderJson(resp, new CardPlayedJson(
                 state.getOnTurn().getId(),
-                state.getActualRoundCards()
+                state.getPlayedCards()
         ));
     }
 
     private void renderEndOfRoundMessage(HttpServletResponse resp, User user, WizardState state) throws IOException {
         Json.renderJson(resp, new EndOfRoundJson(
-                state.getActualRoundCards()
-                // todo
+                state.getRoundWinner(),
+                state.getPlayedCards()
         ));
     }
 

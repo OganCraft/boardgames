@@ -17,11 +17,12 @@ class WizardState {
     private Map<String, List<Card>> cards;
     private Map<String, List<Score>> score;
     private Map<String, List<Boolean>> wins;
-    private Map<String, Card> actualRoundCards;
+    private Map<String, Card> playedCards;  // cards thrown by users in the current round
     private Queue<Card> deck;
     private LinkedList<User> players;   // here leveraged its Deque interface
+    private LinkedList<User> oneRoundPlayers;   // deque to help keeping the order of players during one round
     private Card trump;
-    private User onTurn, roundWinner, gameWinner;
+    private User roundWinner, gameWinner;
     private boolean endOfRound;
     private boolean endOfGame;
 
@@ -32,15 +33,16 @@ class WizardState {
         score = new HashMap<>();
         wins = new HashMap<>();
         players = new LinkedList<>(room.players());
+        oneRoundPlayers = new LinkedList<>(players);
         for (User player : room.players()) {
             userMapping.put(player.getId(), player);
             cards.put(player.getId(), new ArrayList<>());
             score.put(player.getId(), new ArrayList<>());
         }
-        actualRoundCards = new LinkedHashMap<>();
+        playedCards = new LinkedHashMap<>();
 
         // last winner begins the next round, for the first round the owner will start
-        roundWinner = onTurn = players.peekFirst();
+        roundWinner = players.peekFirst();
         prepareNextRound();
     }
 
@@ -52,8 +54,8 @@ class WizardState {
         return cards;
     }
 
-    public Map<String, Card> getActualRoundCards() {
-        return actualRoundCards;
+    public Map<String, Card> getPlayedCards() {
+        return playedCards;
     }
 
     public List<User> getPlayers() {
@@ -61,7 +63,7 @@ class WizardState {
     }
 
     public User getOnTurn() {
-        return onTurn;
+        return oneRoundPlayers.peekFirst();
     }
 
     /**
@@ -109,8 +111,7 @@ class WizardState {
     }
 
     public void nextOnTurn() {
-        players.addLast(players.removeFirst());
-        onTurn = players.peekFirst();
+        oneRoundPlayers.addLast(oneRoundPlayers.removeFirst());
     }
 
     private void prepareDeck() {
@@ -122,7 +123,7 @@ class WizardState {
     public void prepareNextRound() {
         round++;
         endOfRound = endOfGame = false;
-        actualRoundCards.clear();
+        playedCards.clear();
         prepareDeck();
 
         // take cards from the deck for each player
@@ -142,8 +143,8 @@ class WizardState {
         else
             trump = deck.remove();
 
-        while (!roundWinner.equals(onTurn)) {
-            // sort players to have last winner as the first one on turn when the game begins
+        while (!roundWinner.equals(getOnTurn())) {
+            // sort players to have last winner as the first one on turn when new round begins
             nextOnTurn();
         }
     }

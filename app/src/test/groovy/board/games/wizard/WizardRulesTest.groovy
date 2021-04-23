@@ -41,7 +41,7 @@ class WizardRulesTest extends Specification {
 
     def 'follow the color rule 1'() {
         setup:
-        state.getActualRoundCards().put('id1', new Card(1, Card.Color.RED))
+        state.getPlayedCards().put('id1', new Card(1, Card.Color.RED))
         when:
         1 == 1
         // todo
@@ -51,7 +51,7 @@ class WizardRulesTest extends Specification {
 
     def 'close the round - zauberer always wins 1'() {
         setup:
-        def cards = state.getActualRoundCards()
+        def cards = state.getPlayedCards()
         cards.put(user1.id, new Card(14, Card.Color.RED))
         cards.put(user2.id, new Card(14, Card.Color.BLUE))
         cards.put(user3.id, new Card(14, Card.Color.GREEN))
@@ -65,7 +65,7 @@ class WizardRulesTest extends Specification {
 
     def 'close the round - zauberer always wins 2'() {
         setup:
-        def cards = state.getActualRoundCards()
+        def cards = state.getPlayedCards()
         cards.put(user1.id, new Card(10, Card.Color.RED))
         cards.put(user2.id, new Card(14, Card.Color.BLUE))
         cards.put(user3.id, new Card(14, Card.Color.GREEN))
@@ -75,5 +75,21 @@ class WizardRulesTest extends Specification {
 
         then:
         state.getRoundWinner() == user2
+    }
+
+    def 'close the round - trump wins 1'() {
+        setup:
+        def cards = state.getPlayedCards()
+        cards.put(user1.id, new Card(5, Card.Color.BLUE))
+        cards.put(user2.id, new Card(13, Card.Color.YELLOW))
+        cards.put(user3.id, new Card(9, Card.Color.GREEN))
+
+        state.trump = new Card(5, Card.Color.GREEN);
+
+        when:
+        WizardRules.closeTheRound(state)
+
+        then:
+        state.getRoundWinner() == user3
     }
 }

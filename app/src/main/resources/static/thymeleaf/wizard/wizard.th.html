@@ -35,6 +35,23 @@
             margin-right: 3px;
             margin-bottom: 3px;
         }
+        .winner {
+            color: red;
+            font-weight: bold;
+        }
+        #trump-messages-area {
+            /*border: red solid 1px;*/
+            /* clearfix: https://www.w3schools.com/css/css_float_clear.asp */
+            overflow: auto;
+            /* https://stackoverflow.com/questions/3049783/how-to-make-a-floated-div-100-height-of-its-parent */
+            display: flex;
+        }
+        #trump {
+            float: left;
+        }
+        #messages {
+            width: 100%;
+        }
     </style>
     <script th:inline="javascript">
         let players = new Map();
@@ -96,8 +113,8 @@
                 trumpElement.classList.add("card-slot", cardToStyleClass(trump))
             }
 
-            for (let i = 0; i < response.actualCards.length; i++) {
-                let actualCard = response.actualCards[i];
+            for (let i = 0; i < response.playedCards.length; i++) {
+                let actualCard = response.playedCards[i];
                 let element = document.getElementById("played-" + players.get(actualCard.userId));
                 element.classList.remove("cover");
                 element.classList.add(cardToStyleClass(actualCard.card));
@@ -176,7 +193,8 @@
             onCardPlayedEvent(message);
             clearInterval(interval);
 
-
+            // highlight the winner
+            document.getElementById("name-" + players.get(message.winner.id)).className="winner";
         }
     </script>
 </head>
@@ -187,10 +205,16 @@
     <div th:each="slot, iter: ${slots}" th:id="'slot-' + ${slot}" class="card-slot hidden" th:data-index="${iter.index}" onclick="onMyCard(this.getAttribute('data-index'))"></div>
 </fieldset>
 
+<div id="trump-messages-area">
 <fieldset id="trump">
     <legend>Trumf</legend>
     <div id="trump-slot" class="card-slot"></div>
 </fieldset>
+<fieldset id="messages">
+    <legend>Zprávy</legend>
+    <div id="messages-slot" class="messages-slot"></div>
+</fieldset>
+</div>
 
 <fieldset id="gameDesk">
     <legend>Hrací stůl</legend>

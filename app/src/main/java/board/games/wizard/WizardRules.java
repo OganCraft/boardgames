@@ -23,7 +23,7 @@ class WizardRules {
         if (!cards.contains(card))
             return "Tuto kartu hráč nemá v ruce: " + card;
 
-        Map<String, Card> actualRoundCards = state.getActualRoundCards();
+        Map<String, Card> actualRoundCards = state.getPlayedCards();
         Card.Color roundColor = findFirstCardWithColor(actualRoundCards);
 
         if (card.isCommon() && roundColor != null && !card.getColor().equals(roundColor)) {
@@ -42,6 +42,7 @@ class WizardRules {
 
         if (state.isEndOfRound()) {
             WizardRules.closeTheRound(state);
+            System.out.println("winner: " + state.getRoundWinner());
         } else {
             state.nextOnTurn();
         }
@@ -55,7 +56,7 @@ class WizardRules {
      * @param state current game state to update
      */
     static void closeTheRound(WizardState state) {
-        Map<String, Card> actualRoundCards = state.getActualRoundCards();
+        Map<String, Card> actualRoundCards = state.getPlayedCards();
         Card.Color trumpColor = state.getTrump() != null ? state.getTrump().getColor() : null;
         Card.Color roundColor = null;
 
@@ -102,7 +103,8 @@ class WizardRules {
                 continue;
 
             // a card with a color different to the round color has no chance
-            if (!card.getColor().equals(roundColor))
+            // except the card is a trump one
+            if (!card.getColor().equals(roundColor) && !card.getColor().equals(trumpColor))
                 continue;
 
             winnerId = userId;
