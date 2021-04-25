@@ -39,6 +39,10 @@
             color: red;
             font-weight: bold;
         }
+        .onTurn {
+            color: green;
+            font-weight: bold;
+        }
         #trump-messages-area {
             /*border: red solid 1px;*/
             /* clearfix: https://www.w3schools.com/css/css_float_clear.asp */
@@ -54,7 +58,8 @@
         }
     </style>
     <script th:inline="javascript">
-        let players = new Map();
+        let player2index = new Map();
+        let player2name = new Map();
         let interval;
         let myCards = [];
         let me; // userId
@@ -72,6 +77,24 @@
             return color + "-" + sign;
         }
 
+        function displayOnTurn(newOnTurn) {
+            console.log("displayOnTurn: " + onTurn + "/" + newOnTurn);
+            if (onTurn !== undefined)
+                highlightPlayer(onTurn, "")
+            onTurn = newOnTurn;
+            highlightPlayer(onTurn, "onTurn")
+            setMessage("Na tahu je: " + player2name.get(onTurn))
+        }
+
+        function setMessage(message) {
+            let div = document.getElementById("messages-slot");
+            div.innerText = message;
+        }
+
+        function highlightPlayer(playerId, className) {
+            document.getElementById("name-" + player2index.get(playerId)).className = className;
+        }
+
         // ajax: https://developer.mozilla.org/en-US/docs/Web/Guide/AJAX/Getting_Started
         /**
          * Load the initial state of the game.
@@ -82,18 +105,17 @@
 
         function onGetState(response) {
             me = response.userId;
-            onTurn = response.onTurn;
 
             for (let p = 0; p < response.players.length; p++) {
                 // store order of individual players
                 let userId = response.players[p].id;
-                players.set(userId, p);
-                let element = document.getElementById("name-" +p);
+                player2index.set(userId, p);
+                player2name.set(userId, response.players[p].name);
+                let element = document.getElementById("name-" + p);
                 element.innerText = response.players[p].name;
             }
 
-            document.getElementById("turn-" + players.get(onTurn)).innerHTML = "&radic;";
-            // todo: use different css style to highlight the "onTurn" player
+            displayOnTurn(response.onTurn);
 
             for (let i = 0; i < response.myCards.length; i++) {
                 let card = response.myCards[i];
@@ -102,6 +124,11 @@
 
                 element.className = ""; // clear the list
                 element.classList.add("card-slot", "margin", cardToStyleClass(card));
+            }
+
+            if (response.myCards.length === 0) {
+                // in case there is no card in hands
+                document.getElementById("slot-0").className = "card-slot";
             }
 
             let trump = response.trump;
@@ -115,7 +142,7 @@
 
             for (let i = 0; i < response.playedCards.length; i++) {
                 let actualCard = response.playedCards[i];
-                let element = document.getElementById("played-" + players.get(actualCard.userId));
+                let element = document.getElementById("played-" + player2index.get(actualCard.userId));
                 element.classList.remove("cover");
                 element.classList.add(cardToStyleClass(actualCard.card));
             }
@@ -171,18 +198,16 @@
         function onCardPlayedEvent(message) {
             for (let i = 0; i < message.actualCards.length; i++) {
                 let actualCard = message.actualCards[i];
-                let index = players.get(actualCard.userId);
+                let index = player2index.get(actualCard.userId);
                 let element = document.getElementById("played-" + index);
                 if (element.classList.contains("cover")) {
                     element.classList.remove("cover");
                     element.classList.add(cardToStyleClass(actualCard.card));
                 }
-                document.getElementById("turn-" + index).innerHTML = "";
             }
 
             if (message.onTurn !== undefined && message.onTurn !== onTurn) {
-                onTurn = message.onTurn;
-                document.getElementById("turn-" + players.get(onTurn)).innerHTML = "&radic;";
+                displayOnTurn(message.onTurn)
 
                 if (onTurn === me)
                     clearInterval(interval);
@@ -194,7 +219,9 @@
             clearInterval(interval);
 
             // highlight the winner
-            document.getElementById("name-" + players.get(message.winner.id)).className="winner";
+            document.getElementById("name-" + player2index.get(onTurn)).className = "";
+            document.getElementById("name-" + player2index.get(message.winner.id)).className = "winner";
+            setMessage("Vítěz kola je: " + player2name.get(message.winner.id));
         }
     </script>
 </head>
@@ -212,7 +239,7 @@
 </fieldset>
 <fieldset id="messages">
     <legend>Zprávy</legend>
-    <div id="messages-slot" class="messages-slot"></div>
+    <div id="messages-slot"></div>
 </fieldset>
 </div>
 
@@ -223,12 +250,10 @@
             <th>Hráč</th>
             <th>Zahraná karta</th>
             <th>Počet vyhraných štychů</th>
-            <th>Na tahu</th>
         </tr><tr th:each="player, stat: ${players}">
         <td><div th:id="'name-' + ${stat.index}">Hráč 1</td>
         <td><div th:id="'played-' + ${stat.index}" class="card-slot cover"></div></td>
         <td><div th:id="'win-' + ${stat.index}"></div></td>
-        <td><div th:id="'turn-' + ${stat.index}"></div></td>
     </tr>
     </table>
 </fieldset>

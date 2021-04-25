@@ -57,7 +57,7 @@ class WizardRules {
      */
     static void closeTheRound(WizardState state) {
         Map<String, Card> actualRoundCards = state.getPlayedCards();
-        Card.Color trumpColor = state.getTrump() != null ? state.getTrump().getColor() : null;
+        Card.Color trumpColor = state.getTrump() != null && !state.getTrump().isNarr() ? state.getTrump().getColor() : null;
         Card.Color roundColor = null;
 
         // winner - userId

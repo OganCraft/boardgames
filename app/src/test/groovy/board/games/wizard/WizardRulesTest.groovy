@@ -92,4 +92,20 @@ class WizardRulesTest extends Specification {
         then:
         state.getRoundWinner() == user3
     }
+
+    def 'close the round - narr provides no trump color'() {
+        setup:
+        def cards = state.getPlayedCards()
+        cards.put(user1.id, new Card(5, Card.Color.BLUE))
+        cards.put(user2.id, new Card(13, Card.Color.YELLOW))
+        cards.put(user3.id, new Card(9, Card.Color.GREEN))
+
+        state.trump = new Card(0, Card.Color.GREEN);
+
+        when:
+        WizardRules.closeTheRound(state)
+
+        then:
+        state.getRoundWinner() == user1
+    }
 }
