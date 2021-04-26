@@ -7,10 +7,12 @@
 
     table.goleft {
         float: left;
+        width: 5%;
+        height: auto;
     }
 
     img {
-        height: 100px;
+        height: auto;
         width: auto;
     }
 
@@ -18,12 +20,19 @@
         position: absolute;
         top: 0px;
         right: 0px;
+        float: right;
+        width: 50%;
     }
 
     table.goup {
         float: top;
         text-align: center;
-        width: 165px;
+        width: 10%;
+    }
+
+    img.missing {
+        border-color: red;
+        border-style: solid;
     }
 
     -->
@@ -32,8 +41,13 @@
     <script th:inline="javascript">
         var pulledCard = [[${pulledCard}]];
         var isWitch = [[${isWitch}]];
-        alert(pulledCard);
-        alert(isWitch);
+    </script>
+    <script th:if="${!isMyTurn}">
+        var interval = setInterval(reload, 500);
+
+        function reload() {
+            document.getElementById("reload").submit();
+        }
     </script>
 </head>
 <body>
@@ -41,21 +55,18 @@
     <table class="goleft"> <!--the use th:each for every other player-->
         <tr>
             <td>
-                <table th:each="player: ${players}">
+                <table th:each="player: ${playerCards}" class="goleft">
                     <tr>
-                        <td style="cellpadding: 100px, 100px, 100px, 100px;" th:text="${player.name}"><!--playerName-->
-                            name
+                        <td th:text="${player.key}" style="cellpadding: 100px, 100px, 100px, 100px;">
+                        <td th:each="entry: ${player.value}">
+                            <img th:src="'/images/chocolate/' + ${entry.key} + '.jpg'"
+                                 th:class="${entry.value.intValue == 0}? 'missing'" style="width: 500%; height: auto">
                         </td>
-                        <td><img src="/images/chocolate/butter.jpg"></td>
-                        <td><img src="/images/chocolate/cacao.jpg"></td>
-                        <td><img src="/images/chocolate/milk.jpg"></td>
-                        <td><img src="/images/chocolate/nuts.jpg"></td>
-                        <td><img src="/images/chocolate/sugar.jpg"></td>
-                        <td><img src="/images/chocolate/vanilla.jpg"></td>
                     </tr>
-                    <tr>
-                        <td><!--nothing--></td>
-                        <td style="text-align:center" th:each="card : ${myCards}" th:text="${card.value}"></td>
+                    <tr style="width: 500%; height: auto">
+                        <td></td>
+                        <td style="text-align:center; width: 500%" th:each="entry: ${player.value}"
+                            th:text="${entry.value}"></td>
                     </tr>
                 </table>
             </td>
@@ -66,26 +77,46 @@
             <td th:text="${pulledCard}"></td>
         </tr>
     </table>
-    <table class="goright">
-        <tr>
-            <td><img style="height: 500px; width: auto" th:src="'/images/chocolate/' + ${pulledCard} + '.jpg'"></td>
-            <td><img src="/images/chocolate/cover.jpg" , style="height: 500px; width: auto"></td>
-        </tr>
-        <div  th:if="${isMyTurn}">
+    <div th:if="${!gameOver}">
+        <table class="goright">
             <tr>
-                <td>
-                    <form action="/chocolate/pullCard" method="get">
-                        <input type="submit" value="pullCard" style="width: 308px; height: auto"/>
-                    </form>
-                </td>
-                <td>
-                    <form action="/chocolate/endTurn" method="get">
-                        <input type="submit" value="endTurn" style="width: 308px; height: auto"/>
-                    </form>
-                </td>
+                <div th:if="${pulledCard} == null">
+                    <td><img style="height: auto; width: 100%" src="/images/chocolate/cover.jpg"></td>
+                </div>
+                <div th:if="${pulledCard} != null">
+                    <td><img style="height: auto; width: 100%" th:src="'/images/chocolate/' + ${pulledCard} + '.jpg'">
+                    </td>
+                </div>
+                <td><img src="/images/chocolate/cover.jpg" style="height: auto; width: 100%"></td>
             </tr>
-        </div>
-    </table>
+            <div th:if="${isMyTurn}">
+                <tr>
+                    <td>
+                        <form action="/chocolate/pullCard" method="get">
+                            <input type="submit" value="pullCard" style="width: 100%; height: auto"/>
+                        </form>
+                    </td>
+                    <td>
+                        <form action="/chocolate/endTurn" method="get">
+                            <input type="submit" value="endTurn" style="width: 100%; height: auto"/>
+                        </form>
+                    </td>
+                </tr>
+            </div>
+        </table>
+    </div>
+    <div th:if="${gameOver}">
+        <table style="position: absolute; top: 0px; right: 0px; bottom: 50%">
+            <tr>
+                <td th:text="${winner}" style="font-size: 100%"></td>
+            </tr>
+        </table>
+    </div>
+</div>
+<div th:if="${!isMyTurn}">
+    <div th:if="${!gameOver}">
+        <form id="reload" action="/chocolate" method="get"></form>
+    </div>
 </div>
 </body>
 </html>

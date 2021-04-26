@@ -17,16 +17,21 @@ class GameState {
     private List<String> deck;
     private List<String> pulledCards;
     private int intOnTurn;
+    private List<String> ingredients;
+    private boolean gameOver;
+    private String winner;
 
 
     public GameState(Room room) {
-        List<String> help = new ArrayList<>();
-        help.add("butter");
-        help.add("cacao");
-        help.add("milk");
-        help.add("nuts");
-        help.add("sugar");
-        help.add("vanilla");
+        winner = "";
+        gameOver = true;
+        ingredients = new ArrayList<>();
+        ingredients.add("butter");
+        ingredients.add("cacao");
+        ingredients.add("milk");
+        ingredients.add("nuts");
+        ingredients.add("sugar");
+        ingredients.add("vanilla");
 
         playerCards = new LinkedHashMap<>();
         pulledCards = new ArrayList<>();
@@ -37,13 +42,13 @@ class GameState {
 
 
         for (User player : room.players()) {
-            Map<String, AtomicInteger> ingredients = new LinkedHashMap<>();
+            Map<String, AtomicInteger> ingredients2 = new LinkedHashMap<>();
 
-            for(String ingredient : help) {
-                ingredients.put(ingredient, new AtomicInteger());
+            for(String ingredient : ingredients) {
+                ingredients2.put(ingredient, new AtomicInteger());
             }
 
-            playerCards.put(player.getName(), ingredients);
+            playerCards.put(player.getName(), ingredients2);
         }
         deck = CardDeckMake.deckMake();
     }
@@ -72,6 +77,18 @@ class GameState {
         return intOnTurn;
     }
 
+    public List<String> getIngredients() {
+        return ingredients;
+    }
+
+    public boolean isGameOver() {
+        return gameOver;
+    }
+
+    public String getWinner() {
+        return winner;
+    }
+
     public void setIntOnTurn(int intOnTurn) {
         this.intOnTurn = intOnTurn;
     }
@@ -82,5 +99,13 @@ class GameState {
 
     public void setPlayerCards(Map<String, Map<String, AtomicInteger>> playerCards) {
         this.playerCards = playerCards;
+    }
+
+    public void setGameOver(boolean gameOver) {
+        this.gameOver = gameOver;
+    }
+
+    public void setWinner(String winner) {
+        this.winner = winner;
     }
 }

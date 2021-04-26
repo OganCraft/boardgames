@@ -17,7 +17,6 @@ public class ChocoWitchServlet extends HttpServlet {
         Room room = (Room) req.getSession().getAttribute("room");
         User user = (User) req.getSession().getAttribute("user");
         String path = req.getRequestURI();
-        System.out.println(path);
         if ("/chocolate/start".equals(path)) {
             GameState state = new GameState(room);
             room.parameters().put("state", state);
@@ -25,46 +24,22 @@ public class ChocoWitchServlet extends HttpServlet {
             return;
         }
 
-        ArrayList<String> ingredients = new ArrayList<String>();
-        ingredients.add("butter");
-        ingredients.add("cacao");
-        ingredients.add("milk");
-        ingredients.add("nuts");
-        ingredients.add("sugar");
-        ingredients.add("vanilla");
-
         GameState state = (GameState) room.parameters().get("state");
-        System.out.println(state.getPlayerCards());
         if ("/chocolate/pullCard".equals(path)) {
             cardPull(state);
             pulledCards(state);
-            if(!isWitch) {
-                state.getPlayerCards().get(user.getName()).get(pulledCard).incrementAndGet();
-            }else {
+            if (isWitch) {
                 resp.sendRedirect("/chocolate/endTurnForce");
             }
-            return;
         } else if ("/chocolate/endTurn".equals(path)) {
-            if(state.getIntOnTurn() + 1 == state.getPlayersList().size()) {
-                state.setIntOnTurn(0);
-            }else {
-                state.setIntOnTurn(state.getIntOnTurn() + 1);
-            }
-            Map<String, Map<String, AtomicInteger>> playerCards = state.getPlayerCards();
-            Map<String, AtomicInteger> myCards = playerCards.get(user.getName());
-            List<String> pulledCards = state.getPulledCards();
-            for(int i = 0; i < state.getPulledCards().size(); i++) {
-                myCards.get(pulledCards.get(i)).incrementAndGet();
-            }
-            pulledCards.clear();
-            return;
+            addCards(state, req);
         } else if ("/chocolate/endTurnForce".equals(path)) {
-            if(state.getIntOnTurn() + 1 == state.getPlayersList().size()) {
+            if (state.getIntOnTurn() + 1 == state.getPlayersList().size()) {
                 state.setIntOnTurn(0);
-            }else {
+            } else {
                 state.setIntOnTurn(state.getIntOnTurn() + 1);
             }
-            return;
+            state.getPulledCards().clear();
         }
         htmlCode(req, resp);
     }
@@ -88,8 +63,58 @@ public class ChocoWitchServlet extends HttpServlet {
         }
     }
 
+    public void addCards(GameState state, HttpServletRequest req) {
+        User user = (User) req.getSession().getAttribute("user");
+        if (state.getIntOnTurn() + 1 == state.getPlayersList().size()) {
+            state.setIntOnTurn(0);
+        } else {
+            state.setIntOnTurn(state.getIntOnTurn() + 1);
+        }
+        Map<String, Map<String, AtomicInteger>> playerCards = state.getPlayerCards();
+        Map<String, AtomicInteger> myCards = playerCards.get(user.getName());
+        List<String> pulledCards = state.getPulledCards();
+        for (int i = 0; i < state.getPulledCards().size(); i++) {
+            myCards.get(pulledCards.get(i)).incrementAndGet();
+        }
+        pulledCards.clear();
+    }
+
     public void pulledCards(GameState state) {
         state.getPulledCards().add(pulledCard);
+    }
+
+    public void gameOver(HttpServletRequest req, HttpServletResponse resp) {
+        Room room = (Room) req.getSession().getAttribute("room");
+        User user = (User) req.getSession().getAttribute("user");
+        GameState state = (GameState) room.parameters().get("state");
+        boolean gameOver = false;
+        for (User player: state.getPlayersList()) {
+            gameOver = true;
+            for (int j = 0; j < 6; j++) {
+                String playerName = player.getName();
+                String ingredientName = state.getIngredients().get(j);
+                AtomicInteger ingredientsCount = state.getPlayerCards().get(playerName).get(ingredientName);
+                if (ingredientsCount.intValue() == 0) {
+                    gameOver = false;
+                    break;
+                }
+                if (j == 5) {
+                    state.setWinner(player.getName());
+                    state.setGameOver(true);
+                    return;
+                }
+            }
+        }
+        state.setGameOver(gameOver);
+        if (state.getDeck().size() == 0) {
+            if (state.getPulledCards().size() == 0) {
+                state.setGameOver(true);
+                state.setWinner("nobody");
+            } else {
+                addCards(state, req);
+                gameOver(req, resp);
+            }
+        }
     }
 
     private void htmlCode(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -97,14 +122,18 @@ public class ChocoWitchServlet extends HttpServlet {
         User user = (User) req.getSession().getAttribute("user");
         GameState state = (GameState) room.parameters().get("state");
         List<User> players = state.getPlayersList();
-        Map<String, AtomicInteger> myCards = state.getPlayerCards().get(user.getName());
-        boolean isMyTurn = user == state.getOnTurn();
+        boolean isMyTurn = user == state.getPlayersList().get(state.getIntOnTurn());
+        gameOver(req, resp);
+
         req.setAttribute("pulledCards", state.getPulledCards());
         req.setAttribute("pulledCard", pulledCard);
         req.setAttribute("isWitch", isWitch);
-        req.setAttribute("myCards", myCards);
         req.setAttribute("players", players);
         req.setAttribute("isMyTurn", isMyTurn);
+        req.setAttribute("gameOver", state.isGameOver());
+        req.setAttribute("winner", state.getWinner());
+        req.setAttribute("ingredients", state.getIngredients());
+        req.setAttribute("playerCards", state.getPlayerCards());
         getServletContext().getRequestDispatcher("/th/chocowitch/chocolate.th").forward(req, resp);
     }
 }
