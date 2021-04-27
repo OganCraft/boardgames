@@ -5,34 +5,107 @@
     <title>Title</title>
     <style><!--
 
-    table.goleft {
+    .goleft {
         float: left;
-        width: 5%;
-        height: auto;
     }
 
-    img {
-        height: auto;
-        width: auto;
-    }
-
-    table.goright {
-        position: absolute;
-        top: 0px;
-        right: 0px;
-        float: right;
-        width: 50%;
-    }
-
-    table.goup {
-        float: top;
+    .player-name {
         text-align: center;
-        width: 10%;
+        padding: 50px 0;
+        width: 50px;
+    }
+
+    div.pulled-cards {
+        text-align: center;
+        border: coral solid 1px;
+        padding-left: 20px;
+        padding-right: 20px;
+        margin-left: 20px;
+        margin-right: 20px;
+        width: 100px;
+        height: 200px;
+        overflow: auto;
     }
 
     img.missing {
+        height: 100px;
+        margin-left: 5px;
         border-color: red;
         border-style: solid;
+    }
+
+    img.card-player {
+        height: 100px;
+        margin-left: 5px;
+        border-color: white;
+        border-style: solid;
+    }
+
+    div.cover {
+        background-image: url("/images/chocolate/cover.jpg");
+    }
+
+    div.butter {
+        background-image: url("/images/chocolate/butter.jpg");
+    }
+
+    div.cacao {
+        background-image: url("/images/chocolate/cacao.jpg");
+    }
+
+    div.milk {
+        background-image: url("/images/chocolate/milk.jpg");
+    }
+
+    div.nuts {
+        background-image: url("/images/chocolate/nuts.jpg");
+    }
+
+    div.sugar {
+        background-image: url("/images/chocolate/sugar.jpg");
+    }
+
+    div.vanilla {
+        background-image: url("/images/chocolate/vanilla.jpg");
+    }
+
+    div.witch1 {
+        background-image: url("/images/chocolate/witch1.jpg");
+    }
+
+    div.witch2 {
+        background-image: url("/images/chocolate/witch2.jpg");
+    }
+
+    div.witch3 {
+        background-image: url("/images/chocolate/witch3.jpg");
+    }
+
+    div.witch4 {
+        background-image: url("/images/chocolate/witch4.jpg");
+    }
+
+    div.empty-card {
+        background-color: #aaaaaaaa;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-size: cover;
+        width: 100px;
+        height: 180px;
+    }
+
+    div.containerA {
+        border: black solid 1px;
+        overflow: auto;
+    }
+
+    div.containerB {
+        border: violet solid 1px;
+        alignment: center;
+    }
+
+    div.containerC {
+        border: aqua solid 1px;
     }
 
     -->
@@ -43,7 +116,7 @@
         var isWitch = [[${isWitch}]];
     </script>
     <script th:if="${!isMyTurn}">
-        var interval = setInterval(reload, 500);
+         var interval = setInterval(reload, 2000);
 
         function reload() {
             document.getElementById("reload").submit();
@@ -52,65 +125,38 @@
 </head>
 <body>
 <div>
-    <table class="goleft"> <!--the use th:each for every other player-->
-        <tr>
-            <td>
-                <table th:each="player: ${playerCards}" class="goleft">
-                    <tr>
-                        <td th:text="${player.key}" style="cellpadding: 100px, 100px, 100px, 100px;">
-                        <td th:each="entry: ${player.value}">
-                            <img th:src="'/images/chocolate/' + ${entry.key} + '.jpg'"
-                                 th:class="${entry.value.intValue == 0}? 'missing'" style="width: 500%; height: auto">
-                        </td>
-                    </tr>
-                    <tr style="width: 500%; height: auto">
-                        <td></td>
-                        <td style="text-align:center; width: 500%" th:each="entry: ${player.value}"
-                            th:text="${entry.value}"></td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-    <table class="goup">
-        <tr th:each="pulledCard: ${pulledCards}">
-            <td th:text="${pulledCard}"></td>
-        </tr>
-    </table>
-    <div th:if="${!gameOver}">
-        <table class="goright">
-            <tr>
-                <div th:if="${pulledCard} == null">
-                    <td><img style="height: auto; width: 100%" src="/images/chocolate/cover.jpg"></td>
-                </div>
-                <div th:if="${pulledCard} != null">
-                    <td><img style="height: auto; width: 100%" th:src="'/images/chocolate/' + ${pulledCard} + '.jpg'">
-                    </td>
-                </div>
-                <td><img src="/images/chocolate/cover.jpg" style="height: auto; width: 100%"></td>
-            </tr>
-            <div th:if="${isMyTurn}">
-                <tr>
-                    <td>
-                        <form action="/chocolate/pullCard" method="get">
-                            <input type="submit" value="pullCard" style="width: 100%; height: auto"/>
-                        </form>
-                    </td>
-                    <td>
-                        <form action="/chocolate/endTurn" method="get">
-                            <input type="submit" value="endTurn" style="width: 100%; height: auto"/>
-                        </form>
-                    </td>
-                </tr>
+    <div class="goleft">
+        <div th:each="player: ${playerCards}" class="containerA">
+            <div th:text="${player.key}" class="goleft player-name"></div>
+
+            <div th:each="entry: ${player.value}" class="goleft containerB">
+                <img th:src="'/images/chocolate/' + ${entry.key} + '.jpg'"
+                     th:class="${entry.value.intValue == 0}? 'missing' : 'card-player'">
+                <div th:text="${entry.value}" style="text-align: center"></div>
             </div>
-        </table>
+        </div>
     </div>
-    <div th:if="${gameOver}">
-        <table style="position: absolute; top: 0px; right: 0px; bottom: 50%">
-            <tr>
-                <td th:text="${winner}" style="font-size: 100%"></td>
-            </tr>
-        </table>
+
+    <div class="goleft pulled-cards">
+        <div th:each="pulledCard: ${pulledCards}" th:text="${pulledCard}"></div>
+    </div>
+
+    <div class="goleft containerC">
+        <div th:if="${!gameOver}">
+            <div th:class="'empty-card goleft ' + (${pulledCard == null} ? 'cover' : ${pulledCard})"></div>
+            <div class="empty-card cover"></div>
+            <div th:if="${isMyTurn}">
+                <form action="/chocolate/pullCard" method="get">
+                    <input type="submit" value="pullCard" style="width: 100%; height: auto"/>
+                </form>
+                <form action="/chocolate/endTurn" method="get">
+                    <input type="submit" value="endTurn" style="width: 100%; height: auto"/>
+                </form>
+            </div>
+        </div>
+        <div th:if="${gameOver}">
+            <div th:text="${winner} + ' is the winner'" style="font-size: 400%"></div>
+        </div>
     </div>
 </div>
 <div th:if="${!isMyTurn}">
