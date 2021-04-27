@@ -17,14 +17,13 @@ public class ChocoWitchServlet extends HttpServlet {
         Room room = (Room) req.getSession().getAttribute("room");
         User user = (User) req.getSession().getAttribute("user");
         String path = req.getRequestURI();
-        if ("/chocolate/start".equals(path)) {
-            GameState state = new GameState(room);
-            room.parameters().put("state", state);
-            resp.sendRedirect("/chocolate");
-            return;
-        }
 
         GameState state = (GameState) room.parameters().get("state");
+        if (state == null) {
+            state = new GameState(room);
+            room.parameters().put("state", state);
+        }
+
         if ("/chocolate/pullCard".equals(path)) {
             cardPull(state);
             pulledCards(state);

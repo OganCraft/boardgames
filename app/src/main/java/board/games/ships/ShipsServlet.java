@@ -49,16 +49,15 @@ public class ShipsServlet extends HttpServlet {
         Room room = (Room) request.getSession().getAttribute("room");
         User user = (User) request.getSession().getAttribute("user");
 
-        String path = request.getRequestURI();
-        if ("/ships/start".equals(path)) {
+        String onTurn = (String) room.parameters().get("onTurn");
+        if (onTurn == null) {
+            onTurn = user.getName();
             initGame(room);
-            room.parameters().put("onTurn", user.getName());
-            resp.sendRedirect("/ships");
-            return;
+            room.parameters().put("onTurn", onTurn);
         }
 
         Boards boards = getBoards(room, user);
-        boolean myTurn = boards.me.equals(room.parameters().get("onTurn"));
+        boolean myTurn = boards.me.equals(onTurn);
         htmlCode(boards, myTurn, resp, request, Collections.emptyList(), room);
     }
 
