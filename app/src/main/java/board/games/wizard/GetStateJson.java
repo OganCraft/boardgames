@@ -12,22 +12,24 @@ import java.util.Map;
 class GetStateJson {
     private String userId;
     private String userName;
-    private String onTurn;
-    private Card trump;
 
-    private List<User> players; // order of players in this round
-    private List<Card> myCards;
-    private List<PlayedCard> playedCards;
+    private NewRoundJson newRound;
+    private CardPlayedJson playedCards;
+    private EndOfRoundJson endOfRound;
 
-    public GetStateJson(String userId, String userName, String onTurn, List<User> players, List<Card> myCards, Map<String, Card> playedCards, Card trump) {
-        this.userId = userId;
-        this.userName = userName;
-        this.onTurn = onTurn;
-        this.players = players;
-        this.myCards = myCards;
-        this.trump = trump;
+    public GetStateJson(User user, WizardState state) {
+        this.userId = user.getId();
+        this.userName = user.getName();
 
-        this.playedCards = toPlayedCards(playedCards);
+        this.newRound = new NewRoundJson(user, state);
+
+        this.playedCards = null;
+        this.endOfRound = null;
+
+        if (state.getRoundWinner() == null)
+            this.playedCards = new CardPlayedJson(state);
+        else
+            this.endOfRound = new EndOfRoundJson(state.getRoundWinner(), state.getPlayedCards());
     }
 
     static List<PlayedCard> toPlayedCards(Map<String, Card> actualCards) {

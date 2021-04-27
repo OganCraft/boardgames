@@ -7,11 +7,11 @@ import java.util.Map;
 
 class EndOfRoundJson extends EventJson {
     private User winner;
-    private List<GetStateJson.PlayedCard> actualCards;
+    private List<GetStateJson.PlayedCard> playedCards;
 
-    public EndOfRoundJson(User winner, Map<String, Card> actualCards) {
+    public EndOfRoundJson(User winner, Map<String, Card> playedCards) {
         super("end-of-round");
         this.winner = winner;
-        this.actualCards = GetStateJson.toPlayedCards(actualCards);
+        this.playedCards = GetStateJson.toPlayedCards(playedCards);
     }
 }

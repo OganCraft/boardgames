@@ -39,6 +39,9 @@ public class WizardServlet extends HttpServlet {
             case "/play-card":
                 playCard(req, resp, user, state);
                 break;
+            case "/new-round":
+                newRound(req, resp, user, state);
+                break;
             default:
                 renderHtml(req, resp, user, room, state);
                 break;
@@ -46,15 +49,7 @@ public class WizardServlet extends HttpServlet {
     }
 
     private void renderState(HttpServletResponse resp, User user, WizardState state) throws IOException {
-        Json.renderJson(resp, new GetStateJson(
-                user.getId(),
-                user.getName(),
-                state.getOnTurn().getId(),
-                state.getPlayers(),
-                state.getCardsInHand().get(user.getId()),
-                state.getPlayedCards(),
-                state.getTrump()
-        ));
+        Json.renderJson(resp, new GetStateJson(user, state));
     }
 
     private void renderMessage(HttpServletResponse resp, User user, WizardState state) throws IOException {
@@ -71,10 +66,7 @@ public class WizardServlet extends HttpServlet {
      * of get-message requests.
      */
     private void renderCardPlayedMessage(HttpServletResponse resp, User user, WizardState state) throws IOException {
-        Json.renderJson(resp, new CardPlayedJson(
-                state.getOnTurn().getId(),
-                state.getPlayedCards()
-        ));
+        Json.renderJson(resp, new CardPlayedJson(state));
     }
 
     private void renderEndOfRoundMessage(HttpServletResponse resp, User user, WizardState state) throws IOException {
@@ -104,6 +96,11 @@ public class WizardServlet extends HttpServlet {
             renderMessage(resp, user, state);
         else
             renderErrorMessage(resp, validationMessage);
+    }
+
+    private void newRound(HttpServletRequest req, HttpServletResponse resp, User user, WizardState state) throws IOException {
+        state.prepareNextRound();
+        Json.renderJson(resp, new NewRoundJson(user, state));
     }
 
     private void renderHtml(HttpServletRequest req, HttpServletResponse resp, User user, Room room, WizardState state) throws ServletException, IOException {

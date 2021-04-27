@@ -147,5 +147,7 @@ class WizardState {
             // sort players to have last winner as the first one on turn when new round begins
             nextOnTurn();
         }
+
+        roundWinner = null;
     }
 }

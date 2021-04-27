@@ -106,50 +106,15 @@
         function onGetState(response) {
             me = response.userId;
 
-            for (let p = 0; p < response.players.length; p++) {
-                // store order of individual players
-                let userId = response.players[p].id;
-                player2index.set(userId, p);
-                player2name.set(userId, response.players[p].name);
-                let element = document.getElementById("name-" + p);
-                element.innerText = response.players[p].name;
-            }
+            onNewRoundEvent(response.newRound);
+            if (response.playedCards !== undefined)
+                onCardPlayedEvent(response.playedCards);
+            if (response.endOfRound !== undefined)
+                onEndOfRoundEvent(response.endOfRound);
 
-            displayOnTurn(response.onTurn);
-
-            for (let i = 0; i < response.myCards.length; i++) {
-                let card = response.myCards[i];
-                let element = document.getElementById("slot-" + i);
-                myCards.push(card);
-
-                element.className = ""; // clear the list
-                element.classList.add("card-slot", "margin", cardToStyleClass(card));
-            }
-
-            if (response.myCards.length === 0) {
+            if (response.newRound.myCards.length === 0) {
                 // in case there is no card in hands
                 document.getElementById("slot-0").className = "card-slot";
-            }
-
-            let trump = response.trump;
-            let trumpElement = document.getElementById("trump-slot");
-            trumpElement.className = ""; // clear the list
-            if (trump === undefined) {
-                trumpElement.classList.add("card-slot", "empty")
-            } else {
-                trumpElement.classList.add("card-slot", cardToStyleClass(trump))
-            }
-
-            for (let i = 0; i < response.playedCards.length; i++) {
-                let actualCard = response.playedCards[i];
-                let element = document.getElementById("played-" + player2index.get(actualCard.userId));
-                element.classList.remove("cover");
-                element.classList.add(cardToStyleClass(actualCard.card));
-            }
-
-            if (me !== onTurn) {
-                // be notified about what others are doing
-                interval = setInterval(requestMessage, 1000);
             }
         }
 
@@ -192,17 +157,19 @@
                 onCardPlayedEvent(message);
             else if (message.event === "end-of-round")
                 onEndOfRoundEvent(message);
+            else if (message.event === "new-round")
+                onNewRoundEvent(message);
             onGetMessageReceived = true;
         }
 
         function onCardPlayedEvent(message) {
-            for (let i = 0; i < message.actualCards.length; i++) {
-                let actualCard = message.actualCards[i];
-                let index = player2index.get(actualCard.userId);
+            for (let i = 0; i < message.playedCards.length; i++) {
+                let playedCard = message.playedCards[i];
+                let index = player2index.get(playedCard.userId);
                 let element = document.getElementById("played-" + index);
                 if (element.classList.contains("cover")) {
                     element.classList.remove("cover");
-                    element.classList.add(cardToStyleClass(actualCard.card));
+                    element.classList.add(cardToStyleClass(playedCard.card));
                 }
             }
 
@@ -221,7 +188,67 @@
             // highlight the winner
             document.getElementById("name-" + player2index.get(onTurn)).className = "";
             document.getElementById("name-" + player2index.get(message.winner.id)).className = "winner";
-            setMessage("Vítěz kola je: " + player2name.get(message.winner.id));
+            let messageText = "Vítěz kola je: " + player2name.get(message.winner.id);
+
+            if (me === message.winner.id) {
+                document.getElementById("start-new-round-button").className = "";
+                messageText += ". Začni nové kolo stiskem tlačítka."
+            } else {
+                messageText += ". Počkej až vítěz začne nové kolo."
+            }
+
+            setMessage(messageText);
+        }
+
+        function onStartNewRound() {
+            ajax(onGetMessage, "GET", "/wizard/new-round")
+        }
+
+        function onNewRoundEvent(message) {
+            player2index.clear();
+            player2name.clear();
+            myCards = [];
+
+            // reorder players, who begins should be on top
+            for (let p = 0; p < message.players.length; p++) {
+                // store order of individual players
+                let userId = message.players[p].id;
+                player2index.set(userId, p);
+                player2name.set(userId, message.players[p].name);
+                let element = document.getElementById("name-" + p);
+                element.innerText = message.players[p].name;
+            }
+
+            for (let i = 0; i < message.myCards.length; i++) {
+                let card = message.myCards[i];
+                let element = document.getElementById("slot-" + i);
+                myCards.push(card);
+
+                element.className = ""; // clear the list
+                element.classList.add("card-slot", "margin", cardToStyleClass(card));
+            }
+
+            let trump = message.trump;
+            let trumpElement = document.getElementById("trump-slot");
+            trumpElement.className = ""; // clear the list
+            if (trump === undefined) {
+                trumpElement.classList.add("card-slot", "empty")
+            } else {
+                trumpElement.classList.add("card-slot", cardToStyleClass(trump))
+            }
+
+            for (let index in player2index.values()) {
+                document.getElementById("played-" + index).className = "card-slot cover";
+            }
+            
+            displayOnTurn(message.onTurn);
+
+            document.getElementById("start-new-round-button").className = "hidden";
+
+            if (me !== onTurn && me !== message.winner) {
+                // be notified about what others are doing
+                interval = setInterval(requestMessage, 1000);
+            }
         }
     </script>
 </head>
@@ -240,6 +267,7 @@
 <fieldset id="messages">
     <legend>Zprávy</legend>
     <div id="messages-slot"></div>
+    <button id="start-new-round-button" type="button" onclick="onStartNewRound()" class="hidden">Start nového kola</button>
 </fieldset>
 </div>
 
