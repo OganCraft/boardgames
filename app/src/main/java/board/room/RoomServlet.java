@@ -136,8 +136,7 @@ public class RoomServlet extends HttpServlet {
             resp.sendRedirect(room.game().gamePath());
         } else {
             roomManager.startGame(room);
-            // the convention: /game_path/start should initialize the game
-            resp.sendRedirect(room.game().gamePath() + "/start");
+            resp.sendRedirect(room.game().gamePath());
         }
     }
 

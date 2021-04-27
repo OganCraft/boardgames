@@ -1,0 +1,295 @@
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Wizard Game</title>
+<!--    <link rel="stylesheet" href="/wizard/css/wizard.css">-->
+    <script src="/js/ajax.js"></script>
+    <style th:inline="text">
+        [# th:each="card : ${cards}"]
+        .[(${card.color})]-[(${card.sign})] {  background-image: url("/img/wizard/[(${card.color})]/[(${card.sign})].jpg"); }[/]
+        .cover { background-image: url("/img/wizard/w-cover.jpg"); }
+    </style>
+    <style>
+        .card-slot {
+            background-color: #cccccc; /* Used if the image is unavailable */
+            background-position: center; /* Center the image */
+            background-repeat: no-repeat; /* Do not repeat the image */
+            background-size: cover; /* Resize the background image to cover the entire container */
+            width: 90px;
+            height: 140px; /* You must set a specified height */
+            float: left;
+        }
+        .hidden {
+            /* as if the element was not there*/
+            display: none;
+        }
+        .invisible {
+            /* not visible but still part of the layout */
+            visibility: hidden;
+        }
+        .empty {
+
+        }
+        .margin {
+            margin-right: 3px;
+            margin-bottom: 3px;
+        }
+        .winner {
+            color: red;
+            font-weight: bold;
+        }
+        .onTurn {
+            color: green;
+            font-weight: bold;
+        }
+        #trump-messages-area {
+            /*border: red solid 1px;*/
+            /* clearfix: https://www.w3schools.com/css/css_float_clear.asp */
+            overflow: auto;
+            /* https://stackoverflow.com/questions/3049783/how-to-make-a-floated-div-100-height-of-its-parent */
+            display: flex;
+        }
+        #trump {
+            float: left;
+        }
+        #messages {
+            width: 100%;
+        }
+    </style>
+    <script th:inline="javascript">
+        let player2index = new Map();
+        let player2name = new Map();
+        let interval;
+        let myCards = [];
+        let me; // userId
+        let onTurn; // userId
+
+        function cardToStyleClass(card) {
+            let color = card.color.toLowerCase();
+
+            let sign = card.value;
+            if (card.value < 1)
+                sign = "n";
+            else if (card.value > 13)
+                sign = "z";
+
+            return color + "-" + sign;
+        }
+
+        function displayOnTurn(newOnTurn) {
+            console.log("displayOnTurn: " + onTurn + "/" + newOnTurn);
+            if (onTurn !== undefined)
+                highlightPlayer(onTurn, "")
+            onTurn = newOnTurn;
+            highlightPlayer(onTurn, "onTurn")
+            setMessage("Na tahu je: " + player2name.get(onTurn))
+        }
+
+        function setMessage(message) {
+            let div = document.getElementById("messages-slot");
+            div.innerText = message;
+        }
+
+        function highlightPlayer(playerId, className) {
+            document.getElementById("name-" + player2index.get(playerId)).className = className;
+        }
+
+        // ajax: https://developer.mozilla.org/en-US/docs/Web/Guide/AJAX/Getting_Started
+        /**
+         * Load the initial state of the game.
+         */
+        function onload() {
+            ajax(onGetState, "GET", "/wizard/get-state");
+        }
+
+        function onGetState(response) {
+            me = response.userId;
+
+            onNewRoundEvent(response.newRound);
+            if (response.playedCards !== undefined)
+                onCardPlayedEvent(response.playedCards);
+            if (response.endOfRound !== undefined)
+                onEndOfRoundEvent(response.endOfRound);
+
+            if (response.newRound.myCards.length === 0) {
+                // in case there is no card in hands
+                document.getElementById("slot-0").className = "card-slot";
+            }
+        }
+
+        function onMyCard(index) {
+            if (me === onTurn) {
+                let slot = document.getElementById("slot-" + index);
+                slot.className = "card-slot";
+                let params = "color=" + myCards[index].color + "&value=" + myCards[index].value;
+                ajax(onCardPlayed, "GET", "/wizard/play-card?" + params);
+            } else
+                alert("Nejsi na tahu!")
+        }
+
+        function onCardPlayed(response) {
+            onGetMessage(response)
+            interval = setInterval(requestMessage, 1000);
+        }
+
+        /**
+         * Check onTurn change - if there is a any, it means that the previous "onTurn" player has played a card
+         * and we need
+         * 1) show the played card
+         * 2) change the actual player who is on turn to the new "onTurn" player
+         */
+        function requestMessage() {
+            if (!onGetMessageReceived)
+                return;
+
+            onGetMessageReceived = false;
+            ajax(onGetMessage, "GET", "/wizard/get-message")
+        }
+
+        // request overlap protection
+        let onGetMessageReceived = true;
+        function onGetMessage(message) {
+            console.log("event: " + message.event);
+            if (message.event === "error")
+                alert("Chyba: " + message.message);
+            else if (message.event === "card-played")
+                onCardPlayedEvent(message);
+            else if (message.event === "end-of-round")
+                onEndOfRoundEvent(message);
+            else if (message.event === "new-round")
+                onNewRoundEvent(message);
+            onGetMessageReceived = true;
+        }
+
+        function onCardPlayedEvent(message) {
+            for (let i = 0; i < message.playedCards.length; i++) {
+                let playedCard = message.playedCards[i];
+                let index = player2index.get(playedCard.userId);
+                let element = document.getElementById("played-" + index);
+                if (element.classList.contains("cover")) {
+                    element.classList.remove("cover");
+                    element.classList.add(cardToStyleClass(playedCard.card));
+                }
+            }
+
+            if (message.onTurn !== undefined && message.onTurn !== onTurn) {
+                displayOnTurn(message.onTurn)
+
+                if (onTurn === me)
+                    clearInterval(interval);
+            }
+        }
+
+        function onEndOfRoundEvent(message) {
+            onCardPlayedEvent(message);
+            clearInterval(interval);
+
+            // highlight the winner
+            document.getElementById("name-" + player2index.get(onTurn)).className = "";
+            document.getElementById("name-" + player2index.get(message.winner.id)).className = "winner";
+            let messageText = "Vítěz kola je: " + player2name.get(message.winner.id);
+
+            if (me === message.winner.id) {
+                document.getElementById("start-new-round-button").className = "";
+                messageText += ". Začni nové kolo stiskem tlačítka."
+            } else {
+                messageText += ". Počkej až vítěz začne nové kolo."
+            }
+
+            setMessage(messageText);
+        }
+
+        function onStartNewRound() {
+            ajax(onGetMessage, "GET", "/wizard/new-round")
+        }
+
+        function onNewRoundEvent(message) {
+            player2index.clear();
+            player2name.clear();
+            myCards = [];
+
+            // reorder players, who begins should be on top
+            for (let p = 0; p < message.players.length; p++) {
+                // store order of individual players
+                let userId = message.players[p].id;
+                player2index.set(userId, p);
+                player2name.set(userId, message.players[p].name);
+                let element = document.getElementById("name-" + p);
+                element.innerText = message.players[p].name;
+            }
+
+            for (let i = 0; i < message.myCards.length; i++) {
+                let card = message.myCards[i];
+                let element = document.getElementById("slot-" + i);
+                myCards.push(card);
+
+                element.className = ""; // clear the list
+                element.classList.add("card-slot", "margin", cardToStyleClass(card));
+            }
+
+            let trump = message.trump;
+            let trumpElement = document.getElementById("trump-slot");
+            trumpElement.className = ""; // clear the list
+            if (trump === undefined) {
+                trumpElement.classList.add("card-slot", "empty")
+            } else {
+                trumpElement.classList.add("card-slot", cardToStyleClass(trump))
+            }
+
+            for (let index in player2index.values()) {
+                document.getElementById("played-" + index).className = "card-slot cover";
+            }
+            
+            displayOnTurn(message.onTurn);
+
+            document.getElementById("start-new-round-button").className = "hidden";
+
+            if (me !== onTurn && me !== message.winner) {
+                // be notified about what others are doing
+                interval = setInterval(requestMessage, 1000);
+            }
+        }
+    </script>
+</head>
+<body onload="onload()">
+
+<fieldset id="myCards">
+    <legend>Moje karty v ruce</legend>
+    <div th:each="slot, iter: ${slots}" th:id="'slot-' + ${slot}" class="card-slot hidden" th:data-index="${iter.index}" onclick="onMyCard(this.getAttribute('data-index'))"></div>
+</fieldset>
+
+<div id="trump-messages-area">
+<fieldset id="trump">
+    <legend>Trumf</legend>
+    <div id="trump-slot" class="card-slot"></div>
+</fieldset>
+<fieldset id="messages">
+    <legend>Zprávy</legend>
+    <div id="messages-slot"></div>
+    <button id="start-new-round-button" type="button" onclick="onStartNewRound()" class="hidden">Start nového kola</button>
+</fieldset>
+</div>
+
+<fieldset id="gameDesk">
+    <legend>Hrací stůl</legend>
+    <table width="1" border="1" >
+        <tr>
+            <th>Hráč</th>
+            <th>Zahraná karta</th>
+            <th>Počet vyhraných štychů</th>
+        </tr><tr th:each="player, stat: ${players}">
+        <td><div th:id="'name-' + ${stat.index}">Hráč 1</td>
+        <td><div th:id="'played-' + ${stat.index}" class="card-slot cover"></div></td>
+        <td><div th:id="'win-' + ${stat.index}"></div></td>
+    </tr>
+    </table>
+</fieldset>
+
+<fieldset id="score">
+    <legend>Skóre</legend>
+    <div>TODO</div>
+</fieldset>
+
+</body>
+</html>

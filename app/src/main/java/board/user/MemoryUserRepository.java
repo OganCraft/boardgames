@@ -13,18 +13,23 @@ public class MemoryUserRepository implements UserRepository {
         users = new HashMap<>();
 
         // create users
-        users.put("jirka", new User("Jirka"));
-        users.put("vojta", new User("Vojta"));
-        users.put("betka", new User("Bětka"));
-        users.put("kaja", new User("Kája"));
-        users.put("sarka", new User("Šárka"));
-        
-        users.put("svata", new User("Svaťa"));
-        users.put("dita", new User("Dita"));
-        users.put("aja", new User("Ája"));
-        users.put("kamca", new User("Kamča"));
-        users.put("paja", new User("Pája"));
-        users.put("jolca", new User("Jolča"));
+        addUser("jirka",  "Jirka");
+        addUser("vojta",  "Vojta");
+        addUser("betka",  "Bětka");
+        addUser("kaja",  "Kája");
+        addUser("sarka",  "Šárka");
+
+        addUser("svata", "Svaťa");
+        addUser("dita",  "Dita");
+        addUser("aja",  "Ája");
+        addUser("kami",  "Kamča");
+        addUser("karol",  "Karolínka");
+        addUser("paja", "Pája");
+        addUser("jolca", "Jolča");
+    }
+
+    private void addUser(String id, String name) {
+        users.put(id, new User(id, name));
     }
 
     @Override

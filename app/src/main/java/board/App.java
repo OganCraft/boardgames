@@ -4,6 +4,7 @@ import board.filter.AuthenticationFilter;
 import board.games.Games;
 import board.games.chocowitch.ChocoWitchServlet;
 import board.games.ships.ShipsServlet;
+import board.games.wizard.WizardServlet;
 import board.room.RoomManager;
 import board.room.RoomManagerImpl;
 import board.room.RoomServlet;
@@ -52,6 +53,7 @@ public class App {
         // game servlets
         context.addServlet(ShipsServlet.class, Games.SHIPS.gamePath() + "/*");
         context.addServlet(ChocoWitchServlet.class, Games.CHOCO_WITCH.gamePath() + "/*");
+        context.addServlet(WizardServlet.class, Games.WIZARD.gamePath() + "/*");
 
         // html template servlet
 //        context.addServlet(ThymeleafServlet.class, "/thymeleaf");

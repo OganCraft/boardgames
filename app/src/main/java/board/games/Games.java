@@ -2,8 +2,8 @@ package board.games;
 
 public enum Games {
     SHIPS("Ships", 2, 2, "/ships"),
-    CHOCO_WITCH("ChocoWitch", 2, 6, "/chocolate");
-
+    CHOCO_WITCH("ChocoWitch", 2, 6, "/chocolate"),
+    WIZARD("Wizard", 3, 6, "/wizard");
 
     private final String name;
     private final int min;

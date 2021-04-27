@@ -25,6 +25,7 @@ public class AuthenticationFilter implements Filter {
 
         // todo: maybe include only resources required to correctly display login form
         // todo: other resources may be behind the security
+        // fixme: /wizard/whatever.jpg produces NPE!
         if (path.endsWith(".css") || path.endsWith(".jpg"))
             return true;
 
@@ -58,7 +59,7 @@ public class AuthenticationFilter implements Filter {
             response.sendRedirect("/user/login");
             return;
         } else {
-            System.out.println("user is logged in: " + user);
+//            System.out.println("user is logged in: " + user);
         }
 
         chain.doFilter(servletRequest, servletResponse);
