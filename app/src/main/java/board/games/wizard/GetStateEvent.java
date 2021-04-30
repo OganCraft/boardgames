@@ -9,27 +9,27 @@ import java.util.Map;
 /**
  * Class representing all information required during /get-state call.
  */
-class GetStateJson {
+class GetStateEvent {
     private String userId;
     private String userName;
 
-    private NewRoundJson newRound;
-    private CardPlayedJson playedCards;
-    private EndOfRoundJson endOfRound;
+    private Map<String, Object> newRound, playedCards, endOfRound;
 
-    public GetStateJson(User user, WizardState state) {
+    public GetStateEvent(User user, WizardState state) {
         this.userId = user.getId();
         this.userName = user.getName();
 
-        this.newRound = new NewRoundJson(user, state);
-
-        this.playedCards = null;
-        this.endOfRound = null;
+        this.newRound = new NewRoundEventBuilder().build(user, state);
 
         if (state.getRoundWinner() == null)
-            this.playedCards = new CardPlayedJson(state);
+            this.playedCards = new CardPlayedEventBuilder().build(user, state);
         else
-            this.endOfRound = new EndOfRoundJson(state.getRoundWinner(), state.getPlayedCards());
+            this.endOfRound = new EndOfRoundEventBuilder().build(user, state);
+    }
+
+    private static void removeEventName(Map<String, Object> event) {
+        if (event != null)
+            event.remove("event");
     }
 
     static List<PlayedCard> toPlayedCards(Map<String, Card> actualCards) {

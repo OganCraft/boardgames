@@ -12,7 +12,7 @@ class WizardState {
     /**
      * Which round currently is played.
      */
-    private int round;
+    private int round, roundCounter;    // roundCounter - how many cards are used in the current round
     private Map<String, User> userMapping;
     private Map<String, List<Card>> cards;
     private Map<String, List<Score>> score;
@@ -25,6 +25,8 @@ class WizardState {
     private User roundWinner, gameWinner;
     private boolean endOfRound;
     private boolean endOfGame;
+    private boolean guessTime;
+    private String lastAction;
 
     public WizardState(Room room) {
         round = 0;
@@ -43,11 +45,20 @@ class WizardState {
 
         // last winner begins the next round, for the first round the owner will start
         roundWinner = players.peekFirst();
+        lastAction = "";
         prepareNextRound();
     }
 
     public int getRound() {
         return round;
+    }
+
+    public int getRoundCounter() {
+        return roundCounter;
+    }
+
+    public void decreaseRoundCounter() {
+        roundCounter--;
     }
 
     public Map<String, List<Card>> getCardsInHand() {
@@ -90,6 +101,14 @@ class WizardState {
         this.endOfGame = endOfGame;
     }
 
+    public boolean isGuessTime() {
+        return guessTime;
+    }
+
+    public void setGuessTime(boolean guessTime) {
+        this.guessTime = guessTime;
+    }
+
     public User getRoundWinner() {
         return roundWinner;
     }
@@ -114,6 +133,14 @@ class WizardState {
         oneRoundPlayers.addLast(oneRoundPlayers.removeFirst());
     }
 
+    public String getLastAction() {
+        return lastAction;
+    }
+
+    public void setLastAction(String lastAction) {
+        this.lastAction = lastAction;
+    }
+
     private void prepareDeck() {
         LinkedList<Card> c = new LinkedList<>(Card.allCards());
         Collections.shuffle(c, new Random(System.currentTimeMillis()));
@@ -121,7 +148,7 @@ class WizardState {
     }
 
     public void prepareNextRound() {
-        round++;
+        roundCounter = ++round;
         endOfRound = endOfGame = false;
         playedCards.clear();
         prepareDeck();
@@ -149,5 +176,6 @@ class WizardState {
         }
 
         roundWinner = null;
+        guessTime = true;
     }
 }

@@ -23,68 +23,54 @@ public class WizardServlet extends HttpServlet {
         String path = req.getRequestURI().substring(Games.WIZARD.gamePath().length());
 
         WizardState state = (WizardState) room.parameters().get("state");
+        EventDeque events = (EventDeque) room.parameters().get("events");
         if (state == null) {
             // initialize the game
             state = new WizardState(room);
+            events = new EventDeque(room);
             room.parameters().put("state", state);
+            room.parameters().put("events", events);
         }
 
-        switch (path) {
-            case "/get-state":
-                renderState(resp, user, state);
-                break;
-            case "/get-message":
-                renderMessage(resp, user, state);
-                break;
-            case "/play-card":
-                playCard(req, resp, user, state);
-                break;
-            case "/new-round":
-                newRound(req, resp, user, state);
-                break;
-            default:
-                renderHtml(req, resp, user, room, state);
-                break;
+        Object event;
+
+        if ("/get-state".equals(path)) {
+            events.clearUser(user);  // everything is sent in the state
+            event = new GetStateEvent(user, state);
+        } else {
+            try {
+                switch (path) {
+                    case "/get-message":
+                        break;
+                    case "/play-card":
+                        playCard(req, user, state, events);
+                        break;
+                    case "/new-round":
+                        newRound(state, events);
+                        break;
+                    case "/guess-wins":
+                        guessWins(req, resp, user, state);
+                        break;
+                    case "/new-round-wait":
+                        newRoundWait(req, resp, user, state);
+                        break;
+                    default:
+                        renderHtml(req, resp, user, room, state);
+                        return;
+                }
+                event = events.getEvent(user);
+            } catch (WizardException e) {
+                event = EventBuilder.errorMessage(e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace(System.err);
+                throw e;
+            }
         }
+
+        Json.renderJson(resp, event);
     }
 
-    private void renderState(HttpServletResponse resp, User user, WizardState state) throws IOException {
-        Json.renderJson(resp, new GetStateJson(user, state));
-    }
-
-    private void renderMessage(HttpServletResponse resp, User user, WizardState state) throws IOException {
-        if (state.isEndOfGame())
-            renderEndOfGameMessage(resp, user, state);
-        else if (state.isEndOfRound())
-            renderEndOfRoundMessage(resp, user, state);
-        else
-            renderCardPlayedMessage(resp, user, state);
-    }
-
-    /**
-     * This method is called by players who are not on turn. We need to inform them what has happened in between
-     * of get-message requests.
-     */
-    private void renderCardPlayedMessage(HttpServletResponse resp, User user, WizardState state) throws IOException {
-        Json.renderJson(resp, new CardPlayedJson(state));
-    }
-
-    private void renderEndOfRoundMessage(HttpServletResponse resp, User user, WizardState state) throws IOException {
-        Json.renderJson(resp, new EndOfRoundJson(
-                state.getRoundWinner(),
-                state.getPlayedCards()
-        ));
-    }
-
-    private void renderEndOfGameMessage(HttpServletResponse resp, User user, WizardState state) {
-        // todo
-    }
-
-    private void renderErrorMessage(HttpServletResponse resp, String error) throws IOException {
-        Json.renderJson(resp, new ErrorJson(error));
-    }
-
-    private void playCard(HttpServletRequest req, HttpServletResponse resp, User user, WizardState state) throws IOException {
+    private void playCard(HttpServletRequest req, User user, WizardState state, EventDeque events) {
         Card card = new Card(
                 Integer.parseInt(req.getParameter("value")),
                 Card.Color.valueOf(req.getParameter("color"))
@@ -92,15 +78,34 @@ public class WizardServlet extends HttpServlet {
 
         String validationMessage = WizardRules.playCard(user, state, card);
 
-        if (validationMessage == null)
-            renderMessage(resp, user, state);
-        else
-            renderErrorMessage(resp, validationMessage);
+        if (validationMessage == null) {
+            if (state.isEndOfRound())
+                events.createEvent(state, new EndOfRoundEventBuilder());
+            else
+                events.createEvent(state, new CardPlayedEventBuilder());
+        } else
+            throw new WizardException(validationMessage);
     }
 
-    private void newRound(HttpServletRequest req, HttpServletResponse resp, User user, WizardState state) throws IOException {
-        state.prepareNextRound();
-        Json.renderJson(resp, new NewRoundJson(user, state));
+    private void newRound(WizardState state, EventDeque events) {
+        if (state.getRoundCounter() > 0)
+            state.decreaseRoundCounter();
+        else
+            state.prepareNextRound();
+
+        events.createEvent(state, new NewRoundEventBuilder());
+    }
+
+    private void guessWins(HttpServletRequest req, HttpServletResponse resp, User user, WizardState state) {
+        // todo
+    }
+
+    /**
+     * Wait until all guesses are ready.
+     */
+    private void newRoundWait(HttpServletRequest req, HttpServletResponse resp, User user, WizardState state) {
+        // todo
+        state.setGuessTime(false);
     }
 
     private void renderHtml(HttpServletRequest req, HttpServletResponse resp, User user, Room room, WizardState state) throws ServletException, IOException {

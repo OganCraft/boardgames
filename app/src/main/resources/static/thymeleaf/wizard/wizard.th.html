@@ -183,7 +183,6 @@
 
         function onEndOfRoundEvent(message) {
             onCardPlayedEvent(message);
-            clearInterval(interval);
 
             // highlight the winner
             document.getElementById("name-" + player2index.get(onTurn)).className = "";
@@ -193,6 +192,7 @@
             if (me === message.winner.id) {
                 document.getElementById("start-new-round-button").className = "";
                 messageText += ". Začni nové kolo stiskem tlačítka."
+                clearInterval(interval);
             } else {
                 messageText += ". Počkej až vítěz začne nové kolo."
             }
@@ -230,18 +230,22 @@
 
             let trump = message.trump;
             let trumpElement = document.getElementById("trump-slot");
-            trumpElement.className = ""; // clear the list
+            trumpElement.className = "card-slot"; // reset the list
             if (trump === undefined) {
-                trumpElement.classList.add("card-slot", "empty")
+                trumpElement.classList.add("empty")
             } else {
-                trumpElement.classList.add("card-slot", cardToStyleClass(trump))
+                trumpElement.classList.add(cardToStyleClass(trump))
             }
 
             for (let index in player2index.values()) {
                 document.getElementById("played-" + index).className = "card-slot cover";
             }
-            
+
             displayOnTurn(message.onTurn);
+
+            for (let i = 0; i < player2index.size; i++) {
+                document.getElementById("played-" + i).className = "card-slot cover"
+            }
 
             document.getElementById("start-new-round-button").className = "hidden";
 
