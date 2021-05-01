@@ -4,7 +4,7 @@ import board.user.User;
 
 import java.util.Map;
 
-public class NewRoundEventBuilder implements EventBuilder {
+class NewRoundEventBuilder implements EventBuilder {
     private boolean longRound;
 
     public NewRoundEventBuilder(boolean longRound) {
@@ -20,7 +20,7 @@ public class NewRoundEventBuilder implements EventBuilder {
 
         if (longRound) {
             event.put("trump", state.getTrump());
-            event.put("guessTime", state.isGuessTime());
+            event.put("prophecyTime", state.isProphecyTime());
         }
 
         return event;

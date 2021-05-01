@@ -16,7 +16,6 @@ class WizardState {
     private Map<String, User> userMapping;
     private Map<String, List<Card>> cards;
     private Map<String, List<Score>> score;
-    private Map<String, List<Boolean>> wins;
     private Map<String, Card> playedCards;  // cards thrown by users in the current round
     private Queue<Card> deck;
     private LinkedList<User> players;   // deque to help keeping the order of players during one round
@@ -25,15 +24,13 @@ class WizardState {
     private User roundWinner, gameWinner;
     private boolean endOfRound;
     private boolean endOfGame;
-    private boolean guessTime;
-    private String lastAction;
+    private boolean prophecyTime;
 
     public WizardState(Room room) {
         round = 0;
         userMapping = new HashMap<>();
         cards = new HashMap<>();
         score = new HashMap<>();
-        wins = new HashMap<>();
         players = new LinkedList<>(room.players());
         for (User player : room.players()) {
             userMapping.put(player.getId(), player);
@@ -44,7 +41,6 @@ class WizardState {
 
         // last winner begins the next round, for the first round the owner will start
         roundWinner = players.peekFirst();
-        lastAction = "";
         prepareRoundLong();
     }
 
@@ -93,12 +89,12 @@ class WizardState {
         this.endOfGame = endOfGame;
     }
 
-    public boolean isGuessTime() {
-        return guessTime;
+    public boolean isProphecyTime() {
+        return prophecyTime;
     }
 
-    public void setGuessTime(boolean guessTime) {
-        this.guessTime = guessTime;
+    public void setProphecyTime(boolean prophecyTime) {
+        this.prophecyTime = prophecyTime;
     }
 
     public User getRoundWinner() {
@@ -123,14 +119,6 @@ class WizardState {
 
     public void nextOnTurn() {
         onTurnIndex++;
-    }
-
-    public String getLastAction() {
-        return lastAction;
-    }
-
-    public void setLastAction(String lastAction) {
-        this.lastAction = lastAction;
     }
 
     private void prepareDeck() {
@@ -185,6 +173,6 @@ class WizardState {
         }
 
         onTurnIndex = 0;
-        guessTime = true;
+        prophecyTime = true;
     }
 }

@@ -64,6 +64,7 @@
         let myCards = [];
         let me; // userId
         let onTurn; // userId
+        let prophecyTime;
 
         function cardToStyleClass(card) {
             let color = card.color.toLowerCase();
@@ -191,16 +192,15 @@
             document.getElementById("start-new-round-button").className = "hidden";
 
             displayOnTurn(event.onTurn);
-
-            // fixme: should it be here when guessTime is implemented?
-            if (me !== onTurn) {
-                // be notified about what others are doing
-                requestEvent();
-            }
         }
 
         function onNewRoundShortEvent(event) {
             prepareNewRound(event);
+
+            if (me !== onTurn) {
+                // be notified about what others are doing
+                requestEvent();
+            }
         }
 
         function onNewRoundLongEvent(event) {
@@ -225,7 +225,12 @@
                 trumpElement.classList.add(cardToStyleClass(trump))
             }
 
-            // todo: guessTime
+            prophecyTime = event.prophecyTime;
+            if (prophecyTime) {
+                // display prophecy area
+            } else {
+                // hide prophecy area
+            }
         }
 
         /**
@@ -287,6 +292,16 @@
     <legend>Zprávy</legend>
     <div id="messages-slot"></div>
     <button id="start-new-round-button" type="button" onclick="onNewRoundClicked()" class="hidden">Start nového kola</button>
+    <div id="prophecy-slot">
+        Jaké je tvoje proroctví pro toto kolo?
+        <select id="prophecy-select"></select>
+    </div>
+    <div id="prophecy-result">
+        Pro toto kolo platí následující proroctví:
+        <ul id="prophecy-result-ul">
+
+        </ul>
+    </div>
 </fieldset>
 </div>
 

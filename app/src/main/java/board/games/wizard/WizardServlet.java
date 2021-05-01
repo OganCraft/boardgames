@@ -48,11 +48,8 @@ public class WizardServlet extends HttpServlet {
                     case "/new-round":
                         newRound(user, state, events);
                         break;
-                    case "/guess-wins":
-                        guessWins(req, resp, user, state);
-                        break;
-                    case "/new-round-wait":
-                        newRoundWait(req, resp, user, state);
+                    case "/prophecy":
+                        prophecy(req, user, state);
                         break;
                     default:
                         renderHtml(req, resp, user, room, state);
@@ -101,16 +98,19 @@ public class WizardServlet extends HttpServlet {
         }
     }
 
-    private void guessWins(HttpServletRequest req, HttpServletResponse resp, User user, WizardState state) {
-        // todo
-    }
+    private void prophecy(HttpServletRequest req, User user, WizardState state) {
+        int prophecy;
+        try {
+            prophecy = Integer.parseInt(req.getParameter("prophecy"));
+        } catch (NumberFormatException e) {
+            throw new WizardException("Proroctví musí být číslo");
+        }
 
-    /**
-     * Wait until all guesses are ready.
-     */
-    private void newRoundWait(HttpServletRequest req, HttpServletResponse resp, User user, WizardState state) {
+        int maxProphecy = state.getCardsInHand().get(user).size();
+        if (prophecy < 0 || prophecy > maxProphecy)
+            throw new WizardException("Proroctví musí být číslo od 0 do " + maxProphecy);
+
         // todo
-        state.setGuessTime(false);
     }
 
     private void renderHtml(HttpServletRequest req, HttpServletResponse resp, User user, Room room, WizardState state) throws ServletException, IOException {

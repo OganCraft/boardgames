@@ -7,7 +7,7 @@ import java.util.Map;
 /**
  * Information for a waiting player for its turn.
  */
-public class CardPlayedEventBuilder implements EventBuilder {
+class CardPlayedEventBuilder implements EventBuilder {
     @Override
     public Map<String, Object> build(User user, WizardState state) {
         var map = EventBuilder.createEvent("card-played");

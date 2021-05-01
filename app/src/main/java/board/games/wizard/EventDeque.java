@@ -11,7 +11,7 @@ import java.util.Map;
 /**
  * Storage of events for each user.
  */
-public class EventDeque {
+class EventDeque {
     private Map<User, Deque<Object>> deque;
 
     public EventDeque(Room room) {

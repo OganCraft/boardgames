@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * The builder allows creation of a user specific event.
  */
-public interface EventBuilder {
+interface EventBuilder {
     /**
      * Build an event from the user's perspective.
      * @return event object (to be serialized as JSON)
