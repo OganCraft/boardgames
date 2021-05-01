@@ -12,15 +12,15 @@ class WizardState {
     /**
      * Which round currently is played.
      */
-    private int round, roundCounter;    // roundCounter - how many cards are used in the current round
+    private int round;
     private Map<String, User> userMapping;
     private Map<String, List<Card>> cards;
     private Map<String, List<Score>> score;
     private Map<String, List<Boolean>> wins;
     private Map<String, Card> playedCards;  // cards thrown by users in the current round
     private Queue<Card> deck;
-    private LinkedList<User> players;   // here leveraged its Deque interface
-    private LinkedList<User> oneRoundPlayers;   // deque to help keeping the order of players during one round
+    private LinkedList<User> players;   // deque to help keeping the order of players during one round
+    private int onTurnIndex;
     private Card trump;
     private User roundWinner, gameWinner;
     private boolean endOfRound;
@@ -35,7 +35,6 @@ class WizardState {
         score = new HashMap<>();
         wins = new HashMap<>();
         players = new LinkedList<>(room.players());
-        oneRoundPlayers = new LinkedList<>(players);
         for (User player : room.players()) {
             userMapping.put(player.getId(), player);
             cards.put(player.getId(), new ArrayList<>());
@@ -46,19 +45,11 @@ class WizardState {
         // last winner begins the next round, for the first round the owner will start
         roundWinner = players.peekFirst();
         lastAction = "";
-        prepareNextRound();
+        prepareRoundLong();
     }
 
     public int getRound() {
         return round;
-    }
-
-    public int getRoundCounter() {
-        return roundCounter;
-    }
-
-    public void decreaseRoundCounter() {
-        roundCounter--;
     }
 
     public Map<String, List<Card>> getCardsInHand() {
@@ -74,11 +65,12 @@ class WizardState {
     }
 
     public User getOnTurn() {
-        return oneRoundPlayers.peekFirst();
+        return players.get(onTurnIndex);
     }
 
     /**
      * May be null (in the last round).
+     *
      * @return the trump card
      */
     public Card getTrump() {
@@ -130,7 +122,7 @@ class WizardState {
     }
 
     public void nextOnTurn() {
-        oneRoundPlayers.addLast(oneRoundPlayers.removeFirst());
+        onTurnIndex++;
     }
 
     public String getLastAction() {
@@ -147,21 +139,38 @@ class WizardState {
         deck = c;
     }
 
-    public void prepareNextRound() {
-        roundCounter = ++round;
+    /**
+     * Long round contains as much short rounds as what number of cards the player has on the beginning
+     * of the long round. Long round begins by wins number guessing.
+     */
+    public void prepareRoundShort() {
+        endOfRound = endOfGame = false;
+        playedCards.clear();
+
+        while (!roundWinner.equals(players.peekFirst())) {
+            // sort players to have last winner as the first one on turn when new round begins
+            players.addLast(players.removeFirst());
+        }
+
+        onTurnIndex = 0;
+        roundWinner = null;
+    }
+
+    public void prepareRoundLong() {
+        round++;
         endOfRound = endOfGame = false;
         playedCards.clear();
         prepareDeck();
 
         // take cards from the deck for each player
         for (Map.Entry<String, List<Card>> entry : cards.entrySet()) {
-            List<Card> cards = entry.getValue();
+            List<Card> playerCards = entry.getValue();
             // should be empty, but just for safety
-            if (!cards.isEmpty())
-                throw new IllegalStateException("not empty! player: " + entry.getKey() + ", cards: " + cards);
+            if (!playerCards.isEmpty())
+                throw new IllegalStateException("not empty! player: " + entry.getKey() + ", cards: " + playerCards);
 
             for (int i = 0; i < round; i++) {
-                cards.add(deck.remove());
+                playerCards.add(deck.remove());
             }
         }
 
@@ -170,12 +179,12 @@ class WizardState {
         else
             trump = deck.remove();
 
-        while (!roundWinner.equals(getOnTurn())) {
+        while (!roundWinner.equals(players.peekFirst())) {
             // sort players to have last winner as the first one on turn when new round begins
-            nextOnTurn();
+            players.addLast(players.removeFirst());
         }
 
-        roundWinner = null;
+        onTurnIndex = 0;
         guessTime = true;
     }
 }

@@ -10,6 +10,8 @@ import java.util.Map;
  * Class representing all information required during /get-state call.
  */
 class GetStateEvent {
+    private String event = "get-state";
+    private List<User> players;
     private String userId;
     private String userName;
 
@@ -19,12 +21,16 @@ class GetStateEvent {
         this.userId = user.getId();
         this.userName = user.getName();
 
-        this.newRound = new NewRoundEventBuilder().build(user, state);
+        this.newRound = new NewRoundEventBuilder(true).build(user, state);
 
-        if (state.getRoundWinner() == null)
-            this.playedCards = new CardPlayedEventBuilder().build(user, state);
-        else
+        if (state.isEndOfRound())
             this.endOfRound = new EndOfRoundEventBuilder().build(user, state);
+        else
+            this.playedCards = new CardPlayedEventBuilder().build(user, state);
+
+        removeEventName(newRound);
+        removeEventName(playedCards);
+        removeEventName(endOfRound);
     }
 
     private static void removeEventName(Map<String, Object> event) {

@@ -40,13 +40,13 @@ public class WizardServlet extends HttpServlet {
         } else {
             try {
                 switch (path) {
-                    case "/get-message":
+                    case "/get-event":
                         break;
                     case "/play-card":
                         playCard(req, user, state, events);
                         break;
                     case "/new-round":
-                        newRound(state, events);
+                        newRound(user, state, events);
                         break;
                     case "/guess-wins":
                         guessWins(req, resp, user, state);
@@ -87,13 +87,18 @@ public class WizardServlet extends HttpServlet {
             throw new WizardException(validationMessage);
     }
 
-    private void newRound(WizardState state, EventDeque events) {
-        if (state.getRoundCounter() > 0)
-            state.decreaseRoundCounter();
-        else
-            state.prepareNextRound();
+    private void newRound(User user, WizardState state, EventDeque events) {
+        if (!state.isEndOfRound())
+            throw new WizardException("Nelze začít nové kolo, současné ještě neskončilo.");
 
-        events.createEvent(state, new NewRoundEventBuilder());
+        int cardsInHand = state.getCardsInHand().get(user.getId()).size();
+        if (cardsInHand > 0) {
+            state.prepareRoundShort();
+            events.createEvent(state, new NewRoundEventBuilder(false));
+        } else {
+            state.prepareRoundLong();
+            events.createEvent(state, new NewRoundEventBuilder(true));
+        }
     }
 
     private void guessWins(HttpServletRequest req, HttpServletResponse resp, User user, WizardState state) {
