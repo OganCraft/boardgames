@@ -19,11 +19,11 @@ class WizardRules {
      * @return <tt>null</tt> if everything is ok, else an error message
      */
     public static String playCard(User user, WizardState state, Card card) {
-        List<Card> cards = state.getCardsInHand().get(user.getId());
+        List<Card> cards = state.getCardsInHand().get(user);
         if (!cards.contains(card))
             return "Tuto kartu hráč nemá v ruce: " + card;
 
-        Map<String, Card> actualRoundCards = state.getPlayedCards();
+        Map<User, Card> actualRoundCards = state.getPlayedCards();
         Card.Color roundColor = findFirstCardWithColor(actualRoundCards);
 
         if (card.isCommon() && roundColor != null && !card.getColor().equals(roundColor)) {
@@ -34,9 +34,9 @@ class WizardRules {
 
         // todo: check other rules
 
-        state.getCardsInHand().get(user.getId()).remove(card);
+        state.getCardsInHand().get(user).remove(card);
 
-        actualRoundCards.put(user.getId(), card);
+        actualRoundCards.put(user, card);
 
         state.setEndOfRound(actualRoundCards.size() == state.getPlayers().size());
 
@@ -56,20 +56,19 @@ class WizardRules {
      * @param state current game state to update
      */
     static void closeTheRound(WizardState state) {
-        Map<String, Card> actualRoundCards = state.getPlayedCards();
+        Map<User, Card> actualRoundCards = state.getPlayedCards();
         Card.Color trumpColor = state.getTrump() != null && !state.getTrump().isNarr() ? state.getTrump().getColor() : null;
         Card.Color roundColor = null;
 
-        // winner - userId
-        String winnerId = null;
+        User winner = null;
         Card winnerCard = null;
 
-        for (Map.Entry<String, Card> entry : actualRoundCards.entrySet()) {
-            String userId = entry.getKey();
+        for (Map.Entry<User, Card> entry : actualRoundCards.entrySet()) {
+            User user = entry.getKey();
             Card card = entry.getValue();
 
-            if (winnerId == null || card.isZauberer()) {
-                winnerId = userId;
+            if (winner == null || card.isZauberer()) {
+                winner = user;
                 winnerCard = card;
             }
 
@@ -107,15 +106,15 @@ class WizardRules {
             if (!card.getColor().equals(roundColor) && !card.getColor().equals(trumpColor))
                 continue;
 
-            winnerId = userId;
+            winner = user;
             winnerCard = card;
         }
 
-        state.setRoundWinner(state.getUser(winnerId));
+        state.setRoundWinner(winner);
         // todo update score
     }
 
-    private static Card.Color findFirstCardWithColor(Map<String, Card> actualRoundCards) {
+    private static Card.Color findFirstCardWithColor(Map<User, Card> actualRoundCards) {
         for (Card card : actualRoundCards.values()) {
             if (card.isCommon())
                 return card.getColor();

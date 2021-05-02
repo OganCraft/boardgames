@@ -16,7 +16,7 @@ class NewRoundEventBuilder implements EventBuilder {
         var event = EventBuilder.createEvent("new-round-" + (longRound ? "long" : "short"));
         event.put("onTurn", state.getOnTurn().getId());
         event.put("players", state.getPlayers());
-        event.put("myCards", state.getCardsInHand().get(user.getId()));
+        event.put("myCards", state.getCardsInHand().get(user));
 
         if (longRound) {
             event.put("trump", state.getTrump());

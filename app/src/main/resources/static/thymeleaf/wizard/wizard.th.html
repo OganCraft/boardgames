@@ -28,9 +28,6 @@
             /* not visible but still part of the layout */
             visibility: hidden;
         }
-        .empty {
-
-        }
         .margin {
             margin-right: 2px;
             margin-bottom: 2px;
@@ -56,11 +53,16 @@
         #messages {
             width: 100%;
         }
+        #prophecy-slot {
+            margin-top: 15px;
+        }
+        #prophecy-result {
+            margin-top: 15px;
+        }
     </style>
     <script th:inline="javascript">
         let player2index = new Map();
         let player2name = new Map();
-        let interval;
         let myCards = [];
         let me; // userId
         let onTurn; // userId
@@ -84,10 +86,10 @@
                 highlightPlayer(onTurn, "")
             onTurn = newOnTurn;
             highlightPlayer(onTurn, "onTurn")
-            setMessage("Na tahu je: " + player2name.get(onTurn))
+            message("Na tahu je: " + player2name.get(onTurn))
         }
 
-        function setMessage(message) {
+        function message(message) {
             let div = document.getElementById("messages-slot");
             div.innerText = message;
         }
@@ -112,11 +114,13 @@
         }
 
         function onCardClicked(index) {
-            if (me === onTurn) {
+            if (prophecyTime)
+                alert("Je čas věštby!")
+            else if (me === onTurn) {
                 let slot = document.getElementById("slot-" + index);
                 slot.className = "card-slot margin";
                 let params = "color=" + myCards[index].color + "&value=" + myCards[index].value;
-                callServer("/wizard/play-card?" + params)
+                callServer("/play-card?" + params)
             } else
                 alert("Nejsi na tahu!")
         }
@@ -161,11 +165,17 @@
                 requestEvent();
             }
 
-            setMessage(messageText);
+            message(messageText);
         }
 
         function onNewRoundClicked() {
-            callServer("/wizard/new-round");
+            callServer("/new-round");
+        }
+
+        function onProphecyClicked() {
+            let select = document.getElementById("prophecy-select");
+            let prophecy = select.options[select.selectedIndex].text;
+            callServer("/prophecy?prophecy=" + prophecy);
         }
 
         function prepareNewRound(event) {
@@ -203,6 +213,32 @@
             }
         }
 
+        function displayProphecyArea(allReady) {
+            if (allReady) {
+                document.getElementById("prophecy-slot").className = "hidden";
+                prophecyTime = false;
+
+                if (me !== onTurn)
+                    requestEvent();
+            } else if (me === onTurn) {
+                document.getElementById("messages-slot").innerText = "";
+                document.getElementById("prophecy-slot").className = "";
+
+                let select = document.getElementById("prophecy-select");
+                // clear the options first
+                while (select.options.length > 0) select.remove(0);
+                for (let i = 0; i <= myCards.length; i++) {
+                    let option = document.createElement("option");
+                    option.text = i;
+                    select.add(option);
+                }
+            } else {
+                message("Právě prorokuje: " + player2name.get(onTurn));
+                document.getElementById("prophecy-slot").className = "hidden";
+                requestEvent();
+            }
+        }
+
         function onNewRoundLongEvent(event) {
             prepareNewRound(event);
 
@@ -219,25 +255,35 @@
             let trump = event.trump;
             let trumpElement = document.getElementById("trump-slot");
             trumpElement.className = "card-slot"; // reset the list
-            if (trump === undefined) {
-                trumpElement.classList.add("empty")
-            } else {
+            if (trump !== undefined) {
                 trumpElement.classList.add(cardToStyleClass(trump))
             }
 
             prophecyTime = event.prophecyTime;
             if (prophecyTime) {
-                // display prophecy area
-            } else {
-                // hide prophecy area
+                let ul = document.getElementById("prophecy-result-ul");
+                while (ul.firstChild)
+                    ul.removeChild(ul.firstChild);
+                document.getElementById("prophecy-result").className = "hidden";
+                displayProphecyArea(false);
             }
+        }
+
+        function onProphecyEvent(event) {
+            document.getElementById("prophecy-result").className = "";
+            let ul = document.getElementById("prophecy-result-ul");
+            let li = document.createElement("li");
+            li.appendChild(document.createTextNode(player2name.get(event.userId) + ": " + event.prophecy));
+            ul.appendChild(li);
+            displayOnTurn(event.onTurn);
+            displayProphecyArea(event.allReady);
         }
 
         /**
          * Request an event from the server.
          */
         function requestEvent() {
-            setTimeout(callServer, 1000, "/wizard/get-event");
+            setTimeout(callServer, 1000, "/get-event");
         }
 
         function onEvent(event) {
@@ -264,6 +310,9 @@
                 case "new-round-long":
                     onNewRoundLongEvent(event);
                     break;
+                case "prophecy":
+                    onProphecyEvent(event);
+                    break;
             }
         }
 
@@ -272,11 +321,11 @@
          * Load the initial state of the game.
          */
         function callServer(path) {
-            ajax(onEvent, "GET", path);
+            ajax(onEvent, "GET", "/wizard" + path);
         }
     </script>
 </head>
-<body onload="callServer('/wizard/get-state')">
+<body onload="callServer('/get-state')">
 
 <fieldset id="myCards">
     <legend>Moje karty v ruce</legend>
@@ -292,15 +341,14 @@
     <legend>Zprávy</legend>
     <div id="messages-slot"></div>
     <button id="start-new-round-button" type="button" onclick="onNewRoundClicked()" class="hidden">Start nového kola</button>
-    <div id="prophecy-slot">
+    <div id="prophecy-slot" class="hidden">
         Jaké je tvoje proroctví pro toto kolo?
-        <select id="prophecy-select"></select>
+        <div>- počet štychů, které v tomto kole získám: <select id="prophecy-select"></select></div>
+        <div><button onclick="onProphecyClicked()">Vyřkni proroctví!</button></div>
     </div>
-    <div id="prophecy-result">
+    <div id="prophecy-result" class="hidden">
         Pro toto kolo platí následující proroctví:
-        <ul id="prophecy-result-ul">
-
-        </ul>
+        <ul id="prophecy-result-ul"></ul>
     </div>
 </fieldset>
 </div>

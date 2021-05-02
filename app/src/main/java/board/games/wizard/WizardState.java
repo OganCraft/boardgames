@@ -13,10 +13,9 @@ class WizardState {
      * Which round currently is played.
      */
     private int round;
-    private Map<String, User> userMapping;
-    private Map<String, List<Card>> cards;
-    private Map<String, List<Score>> score;
-    private Map<String, Card> playedCards;  // cards thrown by users in the current round
+    private Map<User, List<Card>> cards;
+    private Map<User, List<Score>> score;
+    private Map<User, Card> playedCards;  // cards thrown by users in the current round
     private Queue<Card> deck;
     private LinkedList<User> players;   // deque to help keeping the order of players during one round
     private int onTurnIndex;
@@ -28,14 +27,12 @@ class WizardState {
 
     public WizardState(Room room) {
         round = 0;
-        userMapping = new HashMap<>();
         cards = new HashMap<>();
         score = new HashMap<>();
         players = new LinkedList<>(room.players());
         for (User player : room.players()) {
-            userMapping.put(player.getId(), player);
-            cards.put(player.getId(), new ArrayList<>());
-            score.put(player.getId(), new ArrayList<>());
+            cards.put(player, new ArrayList<>());
+            score.put(player, new ArrayList<>());
         }
         playedCards = new LinkedHashMap<>();
 
@@ -48,16 +45,20 @@ class WizardState {
         return round;
     }
 
-    public Map<String, List<Card>> getCardsInHand() {
+    public Map<User, List<Card>> getCardsInHand() {
         return cards;
     }
 
-    public Map<String, Card> getPlayedCards() {
+    public Map<User, Card> getPlayedCards() {
         return playedCards;
     }
 
     public List<User> getPlayers() {
         return players;
+    }
+
+    public Map<User, List<Score>> getScore() {
+        return score;
     }
 
     public User getOnTurn() {
@@ -101,10 +102,6 @@ class WizardState {
         return roundWinner;
     }
 
-    public User getUser(String userId) {
-        return userMapping.get(userId);
-    }
-
     public void setRoundWinner(User roundWinner) {
         this.roundWinner = roundWinner;
     }
@@ -117,8 +114,18 @@ class WizardState {
         this.gameWinner = gameWinner;
     }
 
-    public void nextOnTurn() {
+    /**
+     * Select a player who is on turn next to the current one.
+     *
+     * @return <tt>true</tt> if there are still players to continue, <tt>false</tt> if the last player has played
+     */
+    public boolean nextOnTurn() {
         onTurnIndex++;
+        if (onTurnIndex >= players.size()) {
+            onTurnIndex = 0;
+            return false;
+        }
+        return true;
     }
 
     private void prepareDeck() {
@@ -151,7 +158,7 @@ class WizardState {
         prepareDeck();
 
         // take cards from the deck for each player
-        for (Map.Entry<String, List<Card>> entry : cards.entrySet()) {
+        for (Map.Entry<User, List<Card>> entry : cards.entrySet()) {
             List<Card> playerCards = entry.getValue();
             // should be empty, but just for safety
             if (!playerCards.isEmpty())
@@ -173,6 +180,6 @@ class WizardState {
         }
 
         onTurnIndex = 0;
-        prophecyTime = true;
+        setProphecyTime(true);
     }
 }

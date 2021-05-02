@@ -49,7 +49,7 @@ public class WizardServlet extends HttpServlet {
                         newRound(user, state, events);
                         break;
                     case "/prophecy":
-                        prophecy(req, user, state);
+                        prophecy(req, user, state, events);
                         break;
                     default:
                         renderHtml(req, resp, user, room, state);
@@ -88,7 +88,7 @@ public class WizardServlet extends HttpServlet {
         if (!state.isEndOfRound())
             throw new WizardException("Nelze začít nové kolo, současné ještě neskončilo.");
 
-        int cardsInHand = state.getCardsInHand().get(user.getId()).size();
+        int cardsInHand = state.getCardsInHand().get(user).size();
         if (cardsInHand > 0) {
             state.prepareRoundShort();
             events.createEvent(state, new NewRoundEventBuilder(false));
@@ -98,7 +98,10 @@ public class WizardServlet extends HttpServlet {
         }
     }
 
-    private void prophecy(HttpServletRequest req, User user, WizardState state) {
+    private void prophecy(HttpServletRequest req, User user, WizardState state, EventDeque events) {
+        if (!user.equals(state.getOnTurn()))
+            throw new WizardException("Nejsi na tahu!");
+
         int prophecy;
         try {
             prophecy = Integer.parseInt(req.getParameter("prophecy"));
@@ -110,7 +113,13 @@ public class WizardServlet extends HttpServlet {
         if (prophecy < 0 || prophecy > maxProphecy)
             throw new WizardException("Proroctví musí být číslo od 0 do " + maxProphecy);
 
-        // todo
+        List<Score> score = state.getScore().get(user);
+        score.add(new Score(prophecy));
+
+        boolean allReady = !state.nextOnTurn();
+        if (allReady)
+            state.setProphecyTime(false);
+        events.createEvent(state, new ProphecyEventBuilder(user.getId(), prophecy, allReady));
     }
 
     private void renderHtml(HttpServletRequest req, HttpServletResponse resp, User user, Room room, WizardState state) throws ServletException, IOException {

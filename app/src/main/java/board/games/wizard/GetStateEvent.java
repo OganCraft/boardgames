@@ -38,10 +38,10 @@ class GetStateEvent {
             event.remove("event");
     }
 
-    static List<PlayedCard> toPlayedCards(Map<String, Card> actualCards) {
+    static List<PlayedCard> toPlayedCards(Map<User, Card> actualCards) {
         List<PlayedCard> list = new ArrayList<>(actualCards.size());
-        for (Map.Entry<String, Card> entry : actualCards.entrySet())
-            list.add(new PlayedCard(entry.getKey(), entry.getValue()));
+        for (Map.Entry<User, Card> entry : actualCards.entrySet())
+            list.add(new PlayedCard(entry.getKey().getId(), entry.getValue()));
         return list;
     }
 
