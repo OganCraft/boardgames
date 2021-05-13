@@ -79,7 +79,7 @@
         <h3>You lost!</h3>
     </div>
     <div th:if="${!gameOver}">
-        <h3>Your turn</h3>
+        <h3>Jsi na tahu</h3>
         <form id="form" action="/ships/fire" method="post">
             <input type="hidden" name="fire" id="fire">
         </form>
@@ -91,7 +91,7 @@
         <h3>You won!</h3>
     </div>
     <div th:if="${!gameOver}">
-        <h3>Enemy's turn</h3>
+        <h3>Nepřítel je na tahu</h3>
         <form id="reload" action="/ships" method="get"></form>
     </div>
 </div>

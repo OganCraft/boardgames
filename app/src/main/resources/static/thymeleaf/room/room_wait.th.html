@@ -13,28 +13,28 @@
      </script>
 </head>
 <body>
-<div th:text="'Room owner: ' + ${room.owner.name}">Room owner: John</div>
+<div th:text="'Místnost založil: ' + ${room.owner.name}">Room owner: John</div>
 <div>
-    Room capacity:
+    Kapacita místnosti:
     <ul>
-        <li th:text="'min: ' + ${room.game.minPlayers}">min: 1</li>
-        <li th:text="'max: ' + ${room.game.maxPlayers}">max: 10</li>
-        <li th:text="'current: ' + ${#sets.size(room.players)}">current: 5</li>
+        <li th:text="'Min: ' + ${room.game.minPlayers}">min: 1</li>
+        <li th:text="'Max: ' + ${room.game.maxPlayers}">max: 10</li>
+        <li th:text="'Aktuálně: ' + ${#sets.size(room.players)}">current: 5</li>
     </ul>
 </div>
 <div>
-    Players:
+    Hráči:
     <ul>
         <li th:each="player: ${room.players}" th:text="${player.name}">John</li>
     </ul>
 </div>
 <div>
-    Actions:
+    Akce:
     <ul>
-        <li><a href="/room/reload" th:href="@{/room/wait}">reload</a></li>
-        <li th:if="${session.user == room.owner and room.game.minPlayers <= #sets.size(room.players)}"><a href="/room/start" th:href="@{/room/start}">start</a></li>
-        <li th:if="${session.user == room.owner}"><a href="/room/end" th:href="@{/room/end}">end</a></li>
-        <li th:unless="${session.user == room.owner}"><a href="/room/leave" th:href="@{/room/leave}">leave</a></li>
+        <li><a href="/room/reload" th:href="@{/room/wait}">načíst znovu</a></li>
+        <li th:if="${session.user == room.owner and room.game.minPlayers <= #sets.size(room.players)}"><a href="/room/start" th:href="@{/room/start}">spustit</a></li>
+        <li th:if="${session.user == room.owner}"><a href="/room/end" th:href="@{/room/end}">zavřít místnost</a></li>
+        <li th:unless="${session.user == room.owner}"><a href="/room/leave" th:href="@{/room/leave}">odejít</a></li>
     </ul>
 </div>
 <div th:if="${session.user == room.owner}">

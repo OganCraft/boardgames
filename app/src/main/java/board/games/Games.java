@@ -1,9 +1,10 @@
 package board.games;
 
 public enum Games {
-    SHIPS("Ships", 2, 2, "/ships"),
-    CHOCO_WITCH("ChocoWitch", 2, 6, "/chocolate"),
-    WIZARD("Wizard", 3, 6, "/wizard");
+    SHIPS("Lodě", 2, 2, "/ships"),
+    CHOCO_WITCH("Čarodějnice", 2, 6, "/chocolate"),
+    WIZARD("Wizard", 3, 6, "/wizard"),
+    COVER_NAMES("Krycí jména", 2, 10, "/names");
 
     private final String name;
     private final int min;

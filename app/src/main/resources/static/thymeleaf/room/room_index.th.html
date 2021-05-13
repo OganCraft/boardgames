@@ -8,14 +8,14 @@
 </head>
 <body>
 <table border="1">
-    <tr><th>Games</th><th>Available Rooms</th><th>Game in progress</th></tr>
+    <tr><th>Hry</th><th>Otevřené místnosti</th><th>Hra probíhá</th></tr>
     <tr><td>
         <div th:each="game: ${games}">
         <a href="create.html" th:href="@{/room/create(game=${game.id})}" th:text="${game.name}">create a game</a><br>
         </div>
     </td><td>
         <div th:each="room: ${roomManager.availableRooms}">
-        <a href="join.html" th:href="@{/room/join(room=${room.id})}" th:text="${room.game.name} + ' (created by ' + ${room.owner.name} + ')'">join a game</a><br>
+        <a href="join.html" th:href="@{/room/join(room=${room.id})}" th:text="${room.game.name} + ' (Vytvořeno uživatelem ' + ${room.owner.name} + ')'">join a game</a><br>
         </div>
     </td><td>
         <div th:each="room: ${roomManager.activeRooms}">

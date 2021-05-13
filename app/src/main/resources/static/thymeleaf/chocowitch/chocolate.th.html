@@ -138,7 +138,7 @@
     </div>
 
     <div class="goleft pulled-cards">
-        <div th:each="pulledCard: ${pulledCards}" th:text="${pulledCard}"></div>
+        <div th:each="pulledCard: ${pulledCards}" th:text="${translationTable.get(pulledCard)}"></div>
     </div>
 
     <div class="goleft containerC">
@@ -147,10 +147,10 @@
             <div class="empty-card cover"></div>
             <div th:if="${isMyTurn}">
                 <form action="/chocolate/pullCard" method="get">
-                    <input type="submit" value="pullCard" style="width: 100%; height: auto"/>
+                    <input type="submit" value="Táhnout kartu" style="width: 100%; height: auto"/>
                 </form>
                 <form action="/chocolate/endTurn" method="get">
-                    <input type="submit" value="endTurn" style="width: 100%; height: auto"/>
+                    <input type="submit" value="Skončit tah" style="width: 100%; height: auto"/>
                 </form>
             </div>
         </div>
