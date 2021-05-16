@@ -15,7 +15,9 @@ public class UserServlet extends HttpServlet {
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String path = req.getRequestURI();
         if ("/user/login".equals(path)) {
+            UserRepository userDB = (UserRepository) req.getServletContext().getAttribute("userDb");
             // just display the login form
+            req.setAttribute("users", userDB.getAllUsers());
             getServletContext().getRequestDispatcher("/th/user/login.th").forward(req, resp);
         } else if ("/user/logout".equals(path)) {
             req.getSession().invalidate();

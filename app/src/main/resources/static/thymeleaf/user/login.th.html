@@ -5,14 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" media="all" href="/css/style.css"/>
     <title>User login</title>
+    <style>
+        span {
+            cursor:pointer;
+            color:blue;
+            text-decoration:underline;
+        }
+
+        span:hover {
+            text-decoration:none;
+            text-shadow: 1px 1px 1px #555;
+        }
+    </style>
 </head>
 <body>
 <h1>Login</h1>
-<form action="/user/login"  method="post">
+<form action="/user/login" method="post">
     <label for="loginName"><b>Login name: </b></label>
     <input type="text" name="loginName" placeholder="Enter Username" id="loginName" required>
     <button type="submit">Login</button>
 </form>
 <p class="error" th:text="${error}">Error message</p>
+<div>
+    <div th:each="user, stat: ${users}">
+        <form th:id="'form-' + ${stat.index}" action="/user/login" method="post">
+            <input type="hidden" name="loginName" th:value="${user.id}">
+            <span th:text="${user.name}" th:data-form="'form-' + ${stat.index}" onclick="document.getElementById(this.getAttribute('data-form')).submit()"></span>
+        </form>
+    </div>
+</div>
 </body>
 </html>
