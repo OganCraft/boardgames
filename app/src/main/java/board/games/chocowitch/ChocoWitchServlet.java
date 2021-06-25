@@ -123,6 +123,13 @@ public class ChocoWitchServlet extends HttpServlet {
         List<User> players = state.getPlayersList();
         boolean isMyTurn = user == state.getPlayersList().get(state.getIntOnTurn());
         gameOver(req, resp);
+        Map<String, String> translationTable = new HashMap<>();
+        translationTable.put("milk", "mléko");
+        translationTable.put("cacao", "kakao");
+        translationTable.put("sugar", "cukr");
+        translationTable.put("vanilla", "vanilka");
+        translationTable.put("butter", "máslo");
+        translationTable.put("nuts", "ořechy");
 
         req.setAttribute("pulledCards", state.getPulledCards());
         req.setAttribute("pulledCard", pulledCard);
@@ -133,6 +140,7 @@ public class ChocoWitchServlet extends HttpServlet {
         req.setAttribute("winner", state.getWinner());
         req.setAttribute("ingredients", state.getIngredients());
         req.setAttribute("playerCards", state.getPlayerCards());
+        req.setAttribute("translationTable", translationTable);
         getServletContext().getRequestDispatcher("/th/chocowitch/chocolate.th").forward(req, resp);
     }
 }

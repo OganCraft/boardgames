@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <style>
+        .hidden {
+            display: none;
+        }
+
+        .normborder {
+            border-style: solid;
+            border-color: black;
+            border-width: 1px;
+        }
+
+        .center {
+            text-align: center;
+        }
+
+        .hint-1 {
+            background-color: blue;
+        }
+
+        .hint-2 {
+            background-color: red;
+        }
+
+        .hint-3 {
+            background-color: black;
+        }
+
+        .hint-4 {
+            background-color: white;
+        }
+    </style>
+    <script src="/js/ajax.js"></script>
+    <script>
+
+        let amIHint;
+        let myTeam;
+        let onTurn;
+
+        function chooseRandom() {
+            //owner hit random button
+            let chooseRandom = document.getElementById("choose-random");
+            let chooseTeam = document.getElementById("choose-choose");
+            let play = document.getElementById("play");
+            let hint = document.getElementById("hint");
+            chooseRandom.classList.add("hidden");
+            chooseTeam.classList.add("hidden");
+            play.classList.remove("hidden");
+            if (amIHint) {
+                hint.classList.remove("hidden");
+            }
+        }
+
+        function chooseTeam() {
+            //owner hit the choose button
+            let chooseRandom = document.getElementById("choose-random");
+            let chooseTeam = document.getElementById("choose-choose");
+            let teamChoose = document.getElementById("team-choose");
+            chooseRandom.classList.add("hidden");
+            chooseTeam.classList.add("hidden");
+            teamChoose.classList.remove("hidden");
+        }
+
+        function chooseRed () {
+            //player hit the blue button
+            let teamChoose = document.getElementById("team-choose");
+            let redTeamList = document.getElementById("redTeamList");
+            teamChoose.classList.add("hidden");
+            redTeamList.classList.remove("hidden");
+            let html = "<table>"
+            for (let i = 0; i > redTeam.length; i++) {
+                html += "<tr><td>" + redTeam[i] + "</td><tr/>"
+            }
+            html += "<table/>";
+                redTeamList.innerHTML = html;
+            callServer("/choose-team?team=red")
+        }
+
+        function chooseBlue () {
+            //player hit the red button
+            let teamChoose = document.getElementById("team-choose");
+            teamChoose.classList.add("hidden");
+        }
+
+        function teamChosen() {
+            //players can start playing
+            let teamChoose = document.getElementById("team-choose");
+            let play = document.getElementById("play");
+            let hint = document.getElementById("hint");
+            teamChoose.classList.add("hidden");
+            play.classList.remove("hidden");
+            if (amIHint) {
+                hint.classList.remove("hidden");
+            }
+        }
+
+        function onEvent(event) {
+            console.log("event: " + event.event);
+            amIHint = event.hint;
+            myTeam = event.team;
+            onTurn = event.teamOnTurn;
+            redTeam = event.red;
+            blueTeam = event.blue;
+            reload();
+
+        }
+
+        function callServer(path) {
+            ajax(onEvent, "GET", "/names" + path);
+        }
+
+        function reload() {
+            let interval = setTimeout(callServer, 2000, "/get-state")
+        }
+    </script>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body onload="callServer('/get-state')">
+<div id="choose-random">
+    <button onclick="chooseRandom()">random</button>
+</div>
+<div id="choose-choose">
+    <button onclick="chooseTeam()">choose</button>
+</div>
+<div id="team-choose" class="hidden">
+    <button onclick="chooseRed()" style="color: red">red</button>
+    <button onclick="chooseBlue()" style="color: blue">blue</button>
+</div>
+<div id="redTeamList" class="hidden, normborder"></div>
+<div id="blueTeamList" class="hidden, normborder">
+    <div></div>
+</div>
+<div id="play" class="hidden">
+    <table style="border-width: 5px; border-color: black; border-style: solid">
+        <tr th:each="sublist: ${cards}">
+            <td class="center normborder" th:each="card: ${sublist}" th:text="${card}"></td>
+        </tr>
+    </table>
+</div>
+<div id="hint" class="hidden">
+    <table>
+        <tr th:each="sublist: ${hint}">
+            <td th:each="field: ${sublist}" th:class="'normborder hint-' + ${field}">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+        </tr>
+    </table>
+</div>
+</body>
+</html>

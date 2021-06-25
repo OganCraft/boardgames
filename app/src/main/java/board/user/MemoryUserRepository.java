@@ -30,6 +30,7 @@ public class MemoryUserRepository implements UserRepository {
         addUser("betka2", "Bětka Kr");
         addUser("jolca", "Jolča");
         addUser("paja", "Pája");
+        addUser("simon", "Šimon");
     }
 
     private void addUser(String id, String name) {
