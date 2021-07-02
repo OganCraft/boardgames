@@ -38,11 +38,12 @@ class WizardRules {
 
         actualRoundCards.put(user, card);
 
-        state.setEndOfRound(actualRoundCards.size() == state.getPlayers().size());
+        if (actualRoundCards.size() == state.getPlayers().size())
+            state.setCurrentState(StateEnum.END_OF_ROUND);
 
-        if (state.isEndOfRound()) {
+        if (state.getCurrentState().equals(StateEnum.END_OF_ROUND)) {
             WizardRules.closeTheRound(state);
-            System.out.println("winner: " + state.getRoundWinner());
+            System.out.println("winner: " + state.getRoundWinner());    // debug
         } else {
             state.nextOnTurn();
         }

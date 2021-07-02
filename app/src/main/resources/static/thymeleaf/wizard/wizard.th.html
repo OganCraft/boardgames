@@ -59,6 +59,10 @@
         #prophecy-result {
             margin-top: 15px;
         }
+
+        tr.odd {
+            background: #dddddd;
+        }
     </style>
     <script th:inline="javascript">
         let player2index = new Map();
@@ -98,6 +102,14 @@
             document.getElementById("name-" + player2index.get(playerId)).className = className;
         }
 
+        function prepareProphecy(prophecies) {
+            prophecyTime = true;
+            document.getElementById("prophecy-result").className = "";
+            prophecies.forEach(function (theProphecy) {
+                onProphecyEvent(theProphecy);
+            });
+        }
+
         function onGetStateEvent(event) {
             me = event.userId;
 
@@ -106,11 +118,15 @@
                 onCardPlayedEvent(event.playedCards);
             if (event.endOfRound !== undefined)
                 onEndOfRoundEvent(event.endOfRound);
+            if (event.prophecy !== undefined)
+                prepareProphecy(event.prophecy);
 
             if (event.newRound.myCards.length === 0) {
                 // in case there is no card in hands
                 document.getElementById("slot-0").className = "card-slot";
             }
+
+            prophecyTime = event.propecyTime;
         }
 
         function onCardClicked(index) {
@@ -140,13 +156,7 @@
 
         function onCardPlayedEvent(event) {
             updatePlayedCards(event.playedCards)
-
-            if (event.onTurn !== undefined && event.onTurn !== onTurn) {
-                displayOnTurn(event.onTurn)
-
-                if (onTurn !== me)
-                    requestEvent();
-            }
+            displayOnTurn(event.onTurn)
         }
 
         function onEndOfRoundEvent(event) {
@@ -155,14 +165,14 @@
             // highlight the winner
             document.getElementById("name-" + player2index.get(onTurn)).className = "";
             document.getElementById("name-" + player2index.get(event.winner.id)).className = "winner";
-            let messageText = "Vítěz kola je: " + player2name.get(event.winner.id);
+            let messageText = "Vítěz kola je: " + player2name.get(event.winner.id) + ". ";
 
             if (me === event.winner.id) {
-                document.getElementById("start-new-round-button").className = "";
-                messageText += ". Začni nové kolo stiskem tlačítka."
+                document.getElementById("end-round-button").className = "";
+                messageText += "Ukonči kolo stiskem tlačítka."
+                onTurn = event.winner.id;
             } else {
-                messageText += ". Počkej až vítěz začne nové kolo."
-                requestEvent();
+                messageText += "Počkej až vítěz kolo ukončí."
             }
 
             message(messageText);
@@ -170,6 +180,10 @@
 
         function onNewRoundClicked() {
             callServer("/new-round");
+        }
+
+        function onEndRoundClicked() {
+            callServer("/end-round");
         }
 
         function onProphecyClicked() {
@@ -182,6 +196,7 @@
             onTurn = undefined;
             player2index.clear();
             player2name.clear();
+            prophecyTime = false;
 
             // reorder players, who begins should be on top
             for (let p = 0; p < event.players.length; p++) {
@@ -206,22 +221,19 @@
 
         function onNewRoundShortEvent(event) {
             prepareNewRound(event);
-
-            if (me !== onTurn) {
-                // be notified about what others are doing
-                requestEvent();
-            }
         }
 
-        function displayProphecyArea(allReady) {
-            if (allReady) {
+        function displayProphecyArea(allDone) {
+            if (allDone) {
                 document.getElementById("prophecy-slot").className = "hidden";
-                prophecyTime = false;
-
-                if (me !== onTurn)
-                    requestEvent();
+                if (me === onTurn) {
+                    message("Proroctví byla vyřčena, stiskem tlačítka odstartuješ nové kolo.");
+                    document.getElementById("start-new-round-button").className = '';
+                } else {
+                    message("Proroctví byla vyřčena, očekávej start nového kola. Startuje ho " + player2name.get(onTurn));
+                }
             } else if (me === onTurn) {
-                document.getElementById("messages-slot").innerText = "";
+                message("");
                 document.getElementById("prophecy-slot").className = "";
 
                 let select = document.getElementById("prophecy-select");
@@ -235,7 +247,6 @@
             } else {
                 message("Právě prorokuje: " + player2name.get(onTurn));
                 document.getElementById("prophecy-slot").className = "hidden";
-                requestEvent();
             }
         }
 
@@ -259,14 +270,11 @@
                 trumpElement.classList.add(cardToStyleClass(trump))
             }
 
-            prophecyTime = event.prophecyTime;
-            if (prophecyTime) {
-                let ul = document.getElementById("prophecy-result-ul");
-                while (ul.firstChild)
-                    ul.removeChild(ul.firstChild);
-                document.getElementById("prophecy-result").className = "hidden";
-                displayProphecyArea(false);
-            }
+            let ul = document.getElementById("prophecy-result-ul");
+            while (ul.firstChild)
+                ul.removeChild(ul.firstChild);
+            document.getElementById("prophecy-result").className = "hidden";
+            displayProphecyArea(false);
         }
 
         function onProphecyEvent(event) {
@@ -276,7 +284,18 @@
             li.appendChild(document.createTextNode(player2name.get(event.userId) + ": " + event.prophecy));
             ul.appendChild(li);
             displayOnTurn(event.onTurn);
-            displayProphecyArea(event.allReady);
+            displayProphecyArea(event.allDone);
+        }
+
+        function onAwaitStart(event) {
+            document.getElementById("prophecy-slot").className = "hidden";
+
+            if (me !== onTurn) {
+                message("Počkej až " + player2name.get(onTurn) + " začne nové kolo.")
+            } else {
+                document.getElementById("start-new-round-button").className = "";
+                message("Začni nové kolo stiskem tlačítka.");
+            }
         }
 
         /**
@@ -287,13 +306,13 @@
         }
 
         function onEvent(event) {
-            console.log("event: " + event.event);
+            if (event.event !== "none")
+                console.log("event: " + event.event);
             switch (event.event) {
                 case "error":
                     alert("Chyba: " + event.message);   // todo: update message area
                     break;
                 case "none":
-                    requestEvent();
                     break;
                 case "get-state":
                     onGetStateEvent(event);
@@ -313,6 +332,14 @@
                 case "prophecy":
                     onProphecyEvent(event);
                     break;
+                case "awaiting-start":
+                    onAwaitStart(event);
+                    break;
+            }
+
+            if (me !== onTurn) {
+                // be notified about what others are doing
+                requestEvent();
             }
         }
 
@@ -341,6 +368,7 @@
     <legend>Zprávy</legend>
     <div id="messages-slot"></div>
     <button id="start-new-round-button" type="button" onclick="onNewRoundClicked()" class="hidden">Start nového kola</button>
+    <button id="end-round-button" type="button" onclick="onEndRoundClicked()" class="hidden">Konec kola</button>
     <div id="prophecy-slot" class="hidden">
         Jaké je tvoje proroctví pro toto kolo?
         <div>- počet štychů, které v tomto kole získám: <select id="prophecy-select"></select></div>
@@ -370,7 +398,18 @@
 
 <fieldset id="score">
     <legend>Skóre</legend>
-    <div>TODO</div>
+    <table width="1px" border="solid">
+        <tr>
+            <td>&nbsp;</td>
+            <th th:each="player: ${players}" colspan="2" th:text="${player.name}">Hráč</th>
+        </tr><tr th:each="round, rstat: ${slots}" th:class="${rstat.odd}? 'odd'">
+            <td th:text="${round + 1}"></td>
+        <div th:each="player, pstat: ${players}">
+            <td th:id="'score-' + ${player.id} + '-' + ${round}"></td>
+            <td th:id="'prophecy-' + ${player.id} + '-' + ${round}"></td>
+        </div>
+        </tr>
+    </table>
 </fieldset>
 
 </body>

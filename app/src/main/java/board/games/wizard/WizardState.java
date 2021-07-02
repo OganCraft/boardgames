@@ -13,17 +13,15 @@ class WizardState {
      * Which round currently is played.
      */
     private int round;
-    private Map<User, List<Card>> cards;
-    private Map<User, List<Score>> score;
-    private Map<User, Card> playedCards;  // cards thrown by users in the current round
+    private final Map<User, List<Card>> cards;
+    private final Map<User, List<Score>> score;
+    private final Map<User, Card> playedCards;  // cards thrown by users in the current round
     private Queue<Card> deck;
-    private LinkedList<User> players;   // deque to help keeping the order of players during one round
+    private final LinkedList<User> players;   // deque to help keeping the order of players during one round
     private int onTurnIndex;
     private Card trump;
     private User roundWinner, gameWinner;
-    private boolean endOfRound;
-    private boolean endOfGame;
-    private boolean prophecyTime;
+    private StateEnum currentState;
 
     public WizardState(Room room) {
         round = 0;
@@ -74,28 +72,12 @@ class WizardState {
         return trump;
     }
 
-    public boolean isEndOfRound() {
-        return endOfRound;
+    public StateEnum getCurrentState() {
+        return currentState;
     }
 
-    public void setEndOfRound(boolean endOfRound) {
-        this.endOfRound = endOfRound;
-    }
-
-    public boolean isEndOfGame() {
-        return endOfGame;
-    }
-
-    public void setEndOfGame(boolean endOfGame) {
-        this.endOfGame = endOfGame;
-    }
-
-    public boolean isProphecyTime() {
-        return prophecyTime;
-    }
-
-    public void setProphecyTime(boolean prophecyTime) {
-        this.prophecyTime = prophecyTime;
+    public void setCurrentState(StateEnum currentState) {
+        this.currentState = currentState;
     }
 
     public User getRoundWinner() {
@@ -139,7 +121,7 @@ class WizardState {
      * of the long round. Long round begins by wins number guessing.
      */
     public void prepareRoundShort() {
-        endOfRound = endOfGame = false;
+        currentState = StateEnum.AWAITING_START_OF_ROUND;
         playedCards.clear();
 
         while (!roundWinner.equals(players.peekFirst())) {
@@ -153,7 +135,7 @@ class WizardState {
 
     public void prepareRoundLong() {
         round++;
-        endOfRound = endOfGame = false;
+        currentState = StateEnum.PROPHECY_TIME;
         playedCards.clear();
         prepareDeck();
 
@@ -180,6 +162,5 @@ class WizardState {
         }
 
         onTurnIndex = 0;
-        setProphecyTime(true);
     }
 }

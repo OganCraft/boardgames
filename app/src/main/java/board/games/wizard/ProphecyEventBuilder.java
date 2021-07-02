@@ -14,14 +14,14 @@ public class ProphecyEventBuilder implements EventBuilder{
      */
     private int prophecy;
     /**
-     * Every prophecy has been made.
+     * If everyone told his/her prophecy.
      */
-    private boolean allReady;
+    private boolean allDone;
 
-    public ProphecyEventBuilder(String userId, int prophecy, boolean allReady) {
-        this.userId = userId;
+    public ProphecyEventBuilder(User user, int prophecy, boolean allDone) {
+        this.userId = user.getId();
         this.prophecy = prophecy;
-        this.allReady = allReady;
+        this.allDone = allDone;
     }
 
     @Override
@@ -29,7 +29,7 @@ public class ProphecyEventBuilder implements EventBuilder{
         var event = EventBuilder.createEvent("prophecy");
         event.put("userId", userId);
         event.put("prophecy", prophecy);
-        event.put("allReady", allReady);
+        event.put("allDone", allDone);
         event.put("onTurn", state.getOnTurn().getId());
         return event;
     }

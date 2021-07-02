@@ -13,6 +13,35 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * todo:
+ * - end round event
+ *      - start the prophecy time
+ *      - or end the game completely
+ * - optimize GetState request
+ *      - chain of individual requests?
+ *      - start getState can avoid 1000ms request delay
+ *      - end of getState can restore the request delay
+ *      - chain of individual events to avoid one fat event which contains
+ *        several events - removal of code duplicity
+ *      - the chain of events can be generated during one request and
+ *        the event queue will get empty through quick requests
+ * - web design
+ *      - table with players/cards:
+ *          - remove the header, for each player create a box with two cells
+ *              - name, wins in format current/prophesied, hoovering the
+ *                values may give detailed description of each number
+ *              - the card
+ *              - wins number can be colored, < prophesied: black,
+ *                == prophesied: dark green, > prophesied: dark red
+ *          - with such boxes the layout can be modified, now is "one player
+ *            per row", with the new boxes, players can be inlined to better
+ *            utilize the display are (especially computers with wide screens,
+ *            mobiles are the opposite)
+ *      - score table
+ *          - for mobiles keep it as it is (high)
+ *          - for wide screens, place it horizontally
+ */
 public class WizardServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -35,7 +64,7 @@ public class WizardServlet extends HttpServlet {
         Object event;
 
         if ("/get-state".equals(path)) {
-            events.clearUser(user);  // everything is sent in the state
+            events.clearUser(user);  // everything is sent in this state
             event = new GetStateEvent(user, state);
         } else {
             try {
@@ -51,6 +80,9 @@ public class WizardServlet extends HttpServlet {
                     case "/prophecy":
                         prophecy(req, user, state, events);
                         break;
+                    case "/end-round":
+                        endRound(user, state, events);
+                        break;
                     default:
                         renderHtml(req, resp, user, room, state);
                         return;
@@ -65,6 +97,7 @@ public class WizardServlet extends HttpServlet {
         }
 
         Json.renderJson(resp, event);
+        LogRequest.request(req, event);
     }
 
     private void playCard(HttpServletRequest req, User user, WizardState state, EventDeque events) {
@@ -76,7 +109,7 @@ public class WizardServlet extends HttpServlet {
         String validationMessage = WizardRules.playCard(user, state, card);
 
         if (validationMessage == null) {
-            if (state.isEndOfRound())
+            if (state.getCurrentState().equals(StateEnum.END_OF_ROUND))
                 events.createEvent(state, new EndOfRoundEventBuilder());
             else
                 events.createEvent(state, new CardPlayedEventBuilder());
@@ -85,8 +118,10 @@ public class WizardServlet extends HttpServlet {
     }
 
     private void newRound(User user, WizardState state, EventDeque events) {
-        if (!state.isEndOfRound())
+        if (!state.getCurrentState().equals(StateEnum.AWAITING_START_OF_ROUND))
             throw new WizardException("Nelze začít nové kolo, současné ještě neskončilo.");
+
+        state.setCurrentState(StateEnum.GAME);
 
         int cardsInHand = state.getCardsInHand().get(user).size();
         if (cardsInHand > 0) {
@@ -96,6 +131,13 @@ public class WizardServlet extends HttpServlet {
             state.prepareRoundLong();
             events.createEvent(state, new NewRoundEventBuilder(true));
         }
+    }
+
+    private void endRound(User user, WizardState state, EventDeque events) {
+        if (!state.getCurrentState().equals(StateEnum.GAME))
+            throw new WizardException("Nelze ukončit kolo, momentálně se nehraje.");
+
+        // todo: EndRoundEvent
     }
 
     private void prophecy(HttpServletRequest req, User user, WizardState state, EventDeque events) {
@@ -116,16 +158,17 @@ public class WizardServlet extends HttpServlet {
         List<Score> score = state.getScore().get(user);
         score.add(new Score(prophecy));
 
-        boolean allReady = !state.nextOnTurn();
-        if (allReady)
-            state.setProphecyTime(false);
-        events.createEvent(state, new ProphecyEventBuilder(user.getId(), prophecy, allReady));
+        boolean allDone = !state.nextOnTurn();    // new player on turn, will be used in the following event
+        events.createEvent(state, new ProphecyEventBuilder(user, prophecy, allDone));
+        if (allDone)
+            state.setCurrentState(StateEnum.AWAITING_START_OF_ROUND);
     }
 
     private void renderHtml(HttpServletRequest req, HttpServletResponse resp, User user, Room room, WizardState state) throws ServletException, IOException {
         // a scaffold to create card slots for each player
-        List<Integer> slots = new ArrayList<>(20);
-        for (int i = 0; i < 20; i++) slots.add(i);
+        int number = 60 / room.players().size();
+        List<Integer> slots = new ArrayList<>(number);
+        for (int i = 0; i < number; i++) slots.add(i);
 
         req.setAttribute("players", room.players());
         req.setAttribute("slots", slots);
