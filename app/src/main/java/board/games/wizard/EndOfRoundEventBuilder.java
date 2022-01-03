@@ -10,6 +10,7 @@ class EndOfRoundEventBuilder implements EventBuilder {
         var event = EventBuilder.createEvent("end-of-round");
         event.put("winner", state.getRoundWinner());
         event.put("playedCards", GetStateEvent.toPlayedCards(state.getPlayedCards()));
+        event.put("victories", state.getLastScore(state.getRoundWinner()).getVictories());
         return event;
     }
 }

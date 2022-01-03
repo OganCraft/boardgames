@@ -112,7 +112,7 @@ class WizardRules {
         }
 
         state.setRoundWinner(winner);
-        // todo update score
+        state.getLastScore(winner).addOneVictory();
     }
 
     private static Card.Color findFirstCardWithColor(Map<User, Card> actualRoundCards) {

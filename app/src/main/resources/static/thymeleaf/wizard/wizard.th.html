@@ -165,6 +165,10 @@
             // highlight the winner
             document.getElementById("name-" + player2index.get(onTurn)).className = "";
             document.getElementById("name-" + player2index.get(event.winner.id)).className = "winner";
+            // update victories count
+            let winElement = document.getElementById("win-" + player2index.get(event.winner.id));
+            winElement.innerText = event.victories;
+
             let messageText = "Vítěz kola je: " + player2name.get(event.winner.id) + ". ";
 
             if (me === event.winner.id) {
@@ -263,6 +267,12 @@
 
                 element.className = ""; // clear the list
                 element.classList.add("card-slot", "margin", cardToStyleClass(card));
+            }
+
+            // reset number of victories
+            for (let p = 0; p < event.players.length; p++) {
+                let element = document.getElementById("win-" + p);
+                element.innerText = "0";
             }
 
             let trump = event.trump;
@@ -386,14 +396,14 @@
 <fieldset id="gameDesk">
     <legend>Hrací stůl</legend>
     <table width="1" border="1" >
-        <tr>
-            <th>Hráč</th>
-            <th>Zahraná karta</th>
-            <th>Počet vyhraných štychů</th>
-        </tr><tr th:each="player, stat: ${players}">
+    <tr>
+        <th>Hráč</th>
+        <th>Zahraná karta</th>
+        <th>Počet vyhraných štychů</th>
+    </tr><tr th:each="player, stat: ${players}">
         <td><div th:id="'name-' + ${stat.index}">Hráč 1</td>
         <td><div th:id="'played-' + ${stat.index}" class="card-slot cover"></div></td>
-        <td><div th:id="'win-' + ${stat.index}"></div></td>
+        <td><div th:id="'win-' + ${stat.index}">0</div></td>
     </tr>
     </table>
 </fieldset>

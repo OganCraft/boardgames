@@ -11,9 +11,9 @@ class ScoreTest extends Specification {
         def score3 = new Score(5)
 
         when:
-        score1.addOneWin()
-        (1..2).each { score2.addOneWin() }
-        (1..5).each { score3.addOneWin() }
+        score1.addOneVictory()
+        (1..2).each { score2.addOneVictory() }
+        (1..5).each { score3.addOneVictory() }
 
         score0.computeScore()
         score1.computeScore()
@@ -35,10 +35,10 @@ class ScoreTest extends Specification {
         def score3 = new Score(5)
 
         when:
-        score0.addOneWin()
-        (1..3).each { score1.addOneWin() }
-        score2.addOneWin()
-        score3.addOneWin()
+        score0.addOneVictory()
+        (1..3).each { score1.addOneVictory() }
+        score2.addOneVictory()
+        score3.addOneVictory()
 
         score0.computeScore()
         score1.computeScore()

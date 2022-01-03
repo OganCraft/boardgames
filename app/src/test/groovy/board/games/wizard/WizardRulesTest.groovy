@@ -17,11 +17,14 @@ class WizardRulesTest extends Specification {
         user3 = new User('id3', 'User 3')
         user4 = new User('id4', 'User 4')
 
-        room.join(user2)
-        room.join(user3)
-        room.join(user4)
+        def users = [user1, user2, user3, user4]
+
+        (users - user1).each { room.join(it)}
 
         state = new WizardState(room)
+        users.each {
+            state.getScore().get(it).add(new Score(0))
+        }
     }
 
     def 'the player owns the played card'() {
@@ -61,6 +64,9 @@ class WizardRulesTest extends Specification {
 
         then:
         state.getRoundWinner() == user1
+        state.getLastScore(user1).victories == 1
+        state.getLastScore(user2).victories == 0
+        state.getLastScore(user3).victories == 0
     }
 
     def 'close the round - zauberer always wins 2'() {
@@ -75,6 +81,9 @@ class WizardRulesTest extends Specification {
 
         then:
         state.getRoundWinner() == user2
+        state.getLastScore(user1).victories == 0
+        state.getLastScore(user2).victories == 1
+        state.getLastScore(user3).victories == 0
     }
 
     def 'close the round - trump wins 1'() {
@@ -107,5 +116,8 @@ class WizardRulesTest extends Specification {
 
         then:
         state.getRoundWinner() == user1
+        state.getLastScore(user1).victories == 1
+        state.getLastScore(user2).victories == 0
+        state.getLastScore(user3).victories == 0
     }
 }

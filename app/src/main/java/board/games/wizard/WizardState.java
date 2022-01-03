@@ -59,6 +59,11 @@ class WizardState {
         return score;
     }
 
+    public Score getLastScore(User user) {
+        List<Score> score = this.score.get(user);
+        return score.get(score.size() - 1);
+    }
+
     public User getOnTurn() {
         return players.get(onTurnIndex);
     }

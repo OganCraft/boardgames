@@ -9,9 +9,9 @@ class Score {
      */
     private int prophecy;
     /**
-     * The real number of wins in one (long) round.
+     * Number of short round victories during one long round.
      */
-    private int wins;
+    private int victories;
     /**
      * Computed score for the closed long round.
      */
@@ -19,23 +19,19 @@ class Score {
 
     public Score(int prophecy) {
         this.prophecy = prophecy;
-        this.wins = this.score = 0;
+        this.victories = this.score = 0;
     }
 
     public int getProphecy() {
         return prophecy;
     }
 
-    public void setProphecy(int prophecy) {
-        this.prophecy = prophecy;
+    public int getVictories() {
+        return victories;
     }
 
-    public int getWins() {
-        return wins;
-    }
-
-    public void addOneWin() {
-        this.wins++;
+    public void addOneVictory() {
+        this.victories++;
     }
 
     public int getScore() {
@@ -43,9 +39,18 @@ class Score {
     }
 
     public void computeScore() {
-        if (prophecy == wins)
-            score = 20 + 10 * wins;
+        if (prophecy == victories)
+            score = 20 + 10 * victories;
         else
-            score = -10 * Math.abs(prophecy - wins);
+            score = -10 * Math.abs(prophecy - victories);
+    }
+
+    @Override
+    public String toString() {
+        return "Score{" +
+                "prophecy=" + prophecy +
+                ", victories=" + victories +
+                ", score=" + score +
+                '}';
     }
 }

@@ -15,6 +15,12 @@ import java.util.List;
 
 /**
  * todo:
+ * - the game rules
+ *      - you must use the same card color as the one who started the (short) round
+ *      - the only exception is Z/N, which you may play whenever you want
+ *      - the first card of one strength wins the round (e.g. first Z in the round or if everyone puts N, the first
+ *        one wins the round)
+ *      - the short round starts the one who won the previous (short) round
  * - end round event
  *      - start the prophecy time
  *      - or end the game completely
@@ -39,7 +45,7 @@ import java.util.List;
  *            utilize the display are (especially computers with wide screens,
  *            mobiles are the opposite)
  *      - score table
- *          - for mobiles keep it as it is (high)
+ *          - for mobiles keep it as it is (vertical)
  *          - for wide screens, place it horizontally
  */
 public class WizardServlet extends HttpServlet {
