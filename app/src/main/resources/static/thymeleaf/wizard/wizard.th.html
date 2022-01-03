@@ -173,6 +173,7 @@
                 onTurn = event.winner.id;
             } else {
                 messageText += "Počkej až vítěz kolo ukončí."
+                onTurn = event.winner.id;
             }
 
             message(messageText);
@@ -215,6 +216,7 @@
             }
 
             document.getElementById("start-new-round-button").className = "hidden";
+            document.getElementById("end-round-button").className = "hidden";
 
             displayOnTurn(event.onTurn);
         }

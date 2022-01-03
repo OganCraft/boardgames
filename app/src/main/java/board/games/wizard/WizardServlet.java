@@ -133,11 +133,16 @@ public class WizardServlet extends HttpServlet {
         }
     }
 
+    /**
+     * After someone wins a round, the winner is printed and "end the round" button is displayed.
+     */
     private void endRound(User user, WizardState state, EventDeque events) {
-        if (!state.getCurrentState().equals(StateEnum.GAME))
-            throw new WizardException("Nelze ukončit kolo, momentálně se nehraje.");
-
         // todo: EndRoundEvent
+        if (state.getCurrentState().equals(StateEnum.END_OF_ROUND)) {
+            state.setCurrentState(StateEnum.AWAITING_START_OF_ROUND);
+            newRound(user, state, events);
+        } else
+            throw new WizardException("Nelze ukončit kolo, momentálně se nehraje.");
     }
 
     private void prophecy(HttpServletRequest req, User user, WizardState state, EventDeque events) {
